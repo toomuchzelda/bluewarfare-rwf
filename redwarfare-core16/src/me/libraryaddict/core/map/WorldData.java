@@ -1,6 +1,8 @@
 package me.libraryaddict.core.map;
 
 import me.libraryaddict.core.utils.*;
+
+import org.apache.commons.lang.StringUtils;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.ConfigurationSection;
@@ -342,7 +344,21 @@ public class WorldData {
     }
 
     public void setupWorld() {
-        _worldFolder = new File(getName() + "_" + System.currentTimeMillis()).getAbsoluteFile();
+    	String name = getName() + "_" + System.currentTimeMillis();
+
+    	//minecraft only accepts world folder names with letters, numbers and a few other characters
+    	//just filter out non-letters and numbers for easiness
+    	String filteredName = "";
+    	for(int i = 0; i < name.length(); i++)
+    	{
+    		char c = name.charAt(i);
+    		if(Character.isLetterOrDigit(c))
+    		{
+    			filteredName += c;
+    		}
+    	}
+    	
+        _worldFolder = new File(filteredName).getAbsoluteFile();
         _worldFolder.mkdir();
 
         UtilFile.extractZip(_mapFile, _worldFolder);
