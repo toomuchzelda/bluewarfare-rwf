@@ -100,7 +100,7 @@ public class ExplosiveAbility extends Ability {
         Location loc = egg.getLocation();
         Vector vec = egg.getVelocity();
 
-        DisguiseAPI.disguiseNextEntity(new MiscDisguise(DisguiseType.EGG));
+        MiscDisguise arrowDisguise = new MiscDisguise(DisguiseType.EGG);
 
         EntityArrow eArrow = new EntityTippedArrow(((CraftEgg) egg).getHandle().getWorld(), loc.getX(), loc.getY(), loc.getZ());
         eArrow.fromPlayer = EntityArrow.PickupStatus.DISALLOWED;
@@ -109,6 +109,9 @@ public class ExplosiveAbility extends Ability {
 
         Arrow arrow = (Arrow) eArrow.getBukkitEntity();
         arrow.setShooter(shooter);
+        
+        arrowDisguise.setEntity(arrow);
+        arrowDisguise.startDisguise();
 
         ((CraftEgg) egg).getHandle().getWorld().addEntity(eArrow, SpawnReason.CUSTOM);
 
