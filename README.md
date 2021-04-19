@@ -26,6 +26,8 @@ When putting in maps make sure to update them to 1.16.5 or the game will crash.
 
 To have a server icon, put the server-icon.png into the bungee's \plugins folder.
 
+It's recommended, in the spigot.yml, to set "player: disable-saving" to true to stop spam from IOExceptions caused by the vanilla server trying to save player data.
+
 ----------------------------------------
 libs notes:
 
