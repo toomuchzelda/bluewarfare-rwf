@@ -665,6 +665,27 @@ public abstract class Game implements Listener {
         		  p.getInventory().addItem(KitHealer.JUMP);
         	  }
           }
+          else if(event.getMessage()[0].startsWith("kb"))
+          {
+        	  if(event.getMessage()[0].equalsIgnoreCase("kblib"))
+        	  {
+	        	  CustomDamageEvent.kbMode = 0;
+	        	  Bukkit.broadcastMessage(C.Blue + "Using lib's algorithm");
+	        	  event.setCancelled(true);
+        	  }
+        	  else if(event.getMessage()[0].equalsIgnoreCase("kbrec"))
+        	  {
+        		  CustomDamageEvent.kbMode = 1;
+        		  Bukkit.broadcastMessage(C.Blue + "Using zelda alg");
+        		  event.setCancelled(true);
+        	  }
+        	  else if(event.getMessage()[0].equalsIgnoreCase("kbport"))
+        	  {
+        		  CustomDamageEvent.kbMode = 2;
+        		  Bukkit.broadcastMessage(C.Blue + "Using port of old code");
+        		  event.setCancelled(true);
+        	  }
+          }
         }
     }
 

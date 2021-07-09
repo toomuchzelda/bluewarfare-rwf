@@ -54,6 +54,9 @@ public class DamageManager extends MiniPlugin {
     private HashMap<Integer, HashMap<Integer, Pair<Integer, Double>>> _tickHit = new HashMap<>();
     //				damagee, tick
     private HashMap<Integer, Integer> _altNoDamageTicks = new HashMap<>();
+    
+    //to store attacks that come 1 tick early and execute 1 tick later
+    //private HashMap<Integer, EntityDamageEvent> _attackBuffer = new HashMap<>();
 
     public DamageManager(JavaPlugin plugin, CombatManager combatManager) {
         super(plugin, "Damage Manager");
@@ -302,7 +305,8 @@ public class DamageManager extends MiniPlugin {
 
         int damageTicks = UtilTime.currentTick - pair.getKey();
 
-        if (damageTicks <= damagee.getMaximumNoDamageTicks() / 2F)
+        //previously less than or equal to
+        if (damageTicks < damagee.getMaximumNoDamageTicks() / 2F)
             return false;
 
         if (damage <= pair.getValue() + 0.001)
@@ -325,7 +329,8 @@ public class DamageManager extends MiniPlugin {
 
         int damageTicks = UtilTime.currentTick - pair.getKey();
 
-        if (damageTicks <= damagee.getMaximumNoDamageTicks() / 2F)
+        //previously less than or equal to
+        if (damageTicks < damagee.getMaximumNoDamageTicks() / 2F)
             return false;
 
         return true;
@@ -572,6 +577,10 @@ public class DamageManager extends MiniPlugin {
                 if (event.getEntity() instanceof LivingEntity
                         && !canAttemptHit(damager, (LivingEntity) event.getEntity())) {
                     return;
+                }
+                else
+                {
+                	 ((Player) damager).sendMessage("ndt: " + ((LivingEntity) event.getEntity()).getNoDamageTicks());
                 }
             }
         }

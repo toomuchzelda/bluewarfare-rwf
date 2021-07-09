@@ -35,3 +35,4 @@ redwarfare-server-spinner/bin/
 buildNumber.properties
 **/mysql/MysqlManager.java
 **/redis/RedisManager.java
+/compile.bat
