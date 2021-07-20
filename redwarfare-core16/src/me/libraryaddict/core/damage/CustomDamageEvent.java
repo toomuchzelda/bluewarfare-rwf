@@ -6,12 +6,11 @@ import me.libraryaddict.core.utils.UtilEnt;
 import me.libraryaddict.core.utils.UtilError;
 import me.libraryaddict.core.utils.UtilMath;
 import me.libraryaddict.core.utils.UtilParticle;
-import net.minecraft.server.v1_16_R3.AttributeModifier;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
-import org.bukkit.attribute.Attribute;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.*;
 import org.bukkit.event.Cancellable;
@@ -49,6 +48,10 @@ public class CustomDamageEvent extends Event implements Cancellable {
 	//for switching kb modes
 	//1 for myWay, 2 for oldWay, 0 for lib
 	public static int kbMode = 2;
+	public static boolean sprintCancel = true;
+	public static boolean reduceVel = true;
+	public static boolean velPacket = false;
+	public static boolean attackRate = false;
 
 	public CustomDamageEvent(Entity damagee, AttackType attackType, double damage) {
 		_attackType = attackType;
@@ -74,17 +77,17 @@ public class CustomDamageEvent extends Event implements Cancellable {
 				return recalculateKnockbackLib();
 				
 			case 1:
-				return recalculateKnockbackMyWay();
+				return recalculateKnockbackAdjusted();
 				
 			case 2:
-				return recKnockbackOldWay();
+				return recKnockbackMyWay();
 				
 			default:
 				return recalculateKnockbackLib();
 		}
 	}
 
-	private Vector recKnockbackOldWay()
+	private Vector recKnockbackMyWay()
 	{
 		Vector vec = new Vector();
 		
@@ -104,51 +107,30 @@ public class CustomDamageEvent extends Event implements Cancellable {
                 dist = xOffset * xOffset + zOffset * zOffset;
             }
 			
-			/*useless loop
-			for (zOffset = getDamager().getLocation().getZ() - getDamagee().getLocation().getZ();
-					xOffset * xOffset + zOffset * zOffset < 1.0E-4D; zOffset = (Math.random() - Math.random()) * 0.01D)
-			{
-				zOffset = (Math.random() - Math.random()) * 0.01D;
-			}	*/
-
 			dist = Math.sqrt(dist);
 
-			/*
-			Vector currentMot = getDamagee().getVelocity().clone();
-
-			currentMot.setX(currentMot.getX() / 2);
-			currentMot.setY(currentMot.getY() / 2);
-			currentMot.setZ(currentMot.getZ() / 2);
-
-			currentMot.setX(currentMot.getX() - (xOffset / dist * y));
-			currentMot.setY(currentMot.getY() + y);
-			currentMot.setZ(currentMot.getZ() - (zOffset / dist * y));
-
-			if(currentMot.getY() > 0.4000000059604645d)
-				currentMot.setY(0.4000000059604645d);
-			else if(currentMot.getY() < 0.2)
-				currentMot.setY(0.2);
-			*/
-			
-			Vector punch = new Vector();
-			double currentY = getDamagee().getVelocity().getY();
-			
-			punch.setX(-(xOffset / dist * y));
-			punch.setZ(-(zOffset / dist * y));
-			
-			if(getDamagee().isOnGround())
+			if(_calculateKB)
 			{
-				punch.multiply(1.5);
-				punch.setY(0.425);
+				Vector punch = new Vector();
+				double currentY = getDamagee().getVelocity().getY();
+				
+				punch.setX(-(xOffset / dist * y));
+				punch.setZ(-(zOffset / dist * y));
+				
+				if(getDamagee().isOnGround())
+				{
+					punch.multiply(1.5);
+					punch.setY(0.425);
+				}
+				else
+				{
+					punch.setY((currentY / 2) + y);
+					if(punch.getY() > 0.4)
+						punch.setY(0.4);
+				}
+				
+				vec.add(punch);
 			}
-			else
-			{
-				punch.setY((currentY / 2) + y);
-				if(punch.getY() > 0.4)
-					punch.setY(0.4);
-			}
-			
-			vec.add(punch);
 
 			double level = 0;
 
@@ -174,31 +156,36 @@ public class CustomDamageEvent extends Event implements Cancellable {
 		return vec;
 	}
 
-	//my modification/recreation
-	private Vector recalculateKnockbackMyWay()
+	private Vector recalculateKnockbackAdjusted()
 	{
-
 		Vector toReturn = _knockback.clone();
-		//Vector toReturn = new Vector();
 
-		if (getDamager() != null)
-		{
-			Vector offset = getDamager().getLocation().toVector().subtract(getDamagee().getLocation().toVector());
+        if (getDamager() != null)
+        {
+        	Vector offset;
+        	if(getDamager() instanceof Projectile && getAttackType() == AttackType.PROJECTILE)
+        	{
+        		offset = getDamager().getLocation().getDirection();
+        		offset.setZ(-offset.getZ());
+        	}
+        	else
+        	{
+        		offset = getDamager().getLocation().toVector().subtract(getDamagee().getLocation().toVector());
+        	}
 
-			double xDist = offset.getX();
-			double zDist = offset.getZ();
+            double xDist = offset.getX();
+            double zDist = offset.getZ();
 
-			while (!Double.isFinite(xDist * xDist + zDist * zDist) || xDist * xDist + zDist * zDist < 0.0001)
-			{
-				xDist = UtilMath.rr(-0.01, 0.01);
-				zDist = UtilMath.rr(-0.01, 0.01);
-			}
+            while (!Double.isFinite(xDist * xDist + zDist * zDist) || xDist * xDist + zDist * zDist < 0.0001)
+            {
+                xDist = UtilMath.rr(-0.01, 0.01);
+                zDist = UtilMath.rr(-0.01, 0.01);
+            }
 
-			double dist = Math.sqrt(xDist * xDist + zDist * zDist);
+            double dist = Math.sqrt(xDist * xDist + zDist * zDist);
 
-			if (_calculateKB)
-			{
-				/* Do not use player's current velocity in calculation (except Y)
+            if (_calculateKB)
+            {
                 Vector vec = getDamagee().getVelocity();
 
                 vec.setX(vec.getX() / 2);
@@ -207,113 +194,68 @@ public class CustomDamageEvent extends Event implements Cancellable {
 
                 vec.add(new Vector(-(xDist / dist * 0.4), 0.4, -(zDist / dist * 0.4)));
 
+                if(vec.getY() > 0.4)
+                	vec.setY(0.4);
+                
                 toReturn.add(vec);
-				 */
+            }
 
-				double yVel = getDamagee().getVelocity().getY();
-				yVel /= 2;
+            double level = 0;
 
-				Vector kb = new Vector(-(xDist / dist * 0.75), 0.4, -(zDist / dist * 0.75));
+            for (int value : _knockbackMult.values())
+            {
+                level += value;
+            }
 
-				//            	if(getDamager() instanceof Player)
-				//            	{
-				//            		Player p = (Player) getDamager();
-				//            		p.sendMessage("lib length: " + kb.length());
-				//            	}
+            if (level != 0)
+            {
+                level /= 2;
 
-				//If attacker is a player, and melee punching, adjust for sprinting
-				/*if(getDamager() instanceof Player && getAttackType() == AttackType.MELEE)
-				{
-					Player damager = (Player) getDamager();
-					if(damager.isSprinting())
-					{
-						if(!getDamagee().isOnGround())
-						{
-							kb.multiply(0.56);
-						}
+                Entity damager = getDamager();
+				Vector kbEnch;
 
-						kb.setY(0.423);
-					}
-					else
-					{
-						if(!getDamagee().isOnGround())
-						{
-							kb.multiply(0.55);
-						}
+				double xKb = (double) -Math.sin(damager.getLocation().getYaw() * 3.1415927F / 180.0f) * (float) level;
+				double zKb = (double) Math.cos(damager.getLocation().getYaw() * 3.1415927F / 180.0f) * (float) level;
 
-						kb.setY(0.465);
-					}
-				}	*/
+				kbEnch = new Vector(xKb, 0.1d, zKb);
+				toReturn.add(kbEnch);
+            }
+        }
 
-				//If victim is in the air
-				if(!getDamagee().isOnGround())
-				{
-					//Bukkit.broadcastMessage("damagee in air");
-					//If attacker is a player, melee attacking and sprinting
-					//(mfw my face when no instanceof pattern matching in java 1.8 OuO)
-					if(getDamager() instanceof Player && getPlayerDamager().isSprinting()
-							&& getAttackType() == AttackType.MELEE)
-					{
-						///Bukkit.broadcastMessage("damager player, sprinting, melee");
-						kb.multiply(0.56);
-						kb.setY(0.423);
-					}
-					//if they're not player, sprinting, or melee attacking
-					else
-					{
-						//Bukkit.broadcastMessage("damager: " + getDamager().getName());
-						kb.multiply(0.55);
-						kb.setY(0.465);
-					}
-				}
-				//If victim is on the ground
-				else
-				{
-					//Bukkit.broadcastMessage("damagee grounded");
-					//If attacker is player and sprinting and melee attacking
-					if(getDamager() instanceof Player && getAttackType() == AttackType.MELEE)
-					{
-						Player damager = getPlayerDamager();
-						if(damager.isSprinting())
-						{
-							//Bukkit.broadcastMessage("damager player, sprinting, melee");
-							kb.setY(0.423);
-						}
-						else
-						{
-							//Bukkit.broadcastMessage("damager player, not sprinting, melee");
-							kb.setY(0.465);
-						}
-					}
-					else
-					{
-						//Bukkit.broadcastMessage("damager: " + getDamager().getName());
-					}
-					//else leave Y as 0.4
-				}
+        return toReturn;
+	}
+	
+	/*
+	private Vector calculateArrowKB()
+	{
+		Vector toReturn = _knockback.clone();
+		
+		if (_calculateKB)
+        {
+			Projectile proj = (Projectile) getDamager();
+			Vector direction = proj.getLocation().getDirection();
+			//flip projectile X
+			direction.setX(-direction.getX());
+			direction.setY(0);
+			direction.normalize();
+			
+            Vector vec = getDamagee().getVelocity();
 
-				toReturn.add(kb);
-			}
+            vec.setX(vec.getX() / 2);
+            vec.setY(vec.getY() / 2);
+            vec.setZ(vec.getZ() / 2);
 
-			double level = 0;
+            vec.add(new Vector(direction.getX() * 0.4, 0.4, direction.getZ() * 0.4));
 
-			for (int value : _knockbackMult.values())
-			{
-				level += value;
-			}
-
-			//Bukkit.broadcastMessage("kb level: " + level);
-			if (level != 0)
-			{
-				level /= 2;
-
-
-				toReturn.add(new Vector(-(xDist / dist * level), 0.1, -(zDist / dist * level)));
-			}
-		}
-
+            if(vec.getY() > 0.4)
+            	vec.setY(0.4);
+            
+            toReturn.add(vec);
+        }
+		
 		return toReturn;
 	}
+	*/
 	
 	private Vector recalculateKnockbackLib()
     {
@@ -523,6 +465,7 @@ public class CustomDamageEvent extends Event implements Cancellable {
 			removeKnockback("Arrow Knockback");
 
 			Vector vec = getFinalKnockback();
+			//credit to Onnet - created pythagoras theorem.
 			double dist = Math.sqrt(vec.getX() * vec.getX() + vec.getZ() * vec.getZ());
 
 			if (knockback > 0 && dist > 0) {
@@ -617,13 +560,28 @@ public class CustomDamageEvent extends Event implements Cancellable {
 	public Vector getFinalKnockback() {
 		Vector vec = recalculateKnockback();
 
+		//debugging
+		/*
+		if(getDamager() instanceof Player)
+		{
+			getPlayerDamager().sendMessage("knockbackMods:");
+			Iterator<Entry<String, Vector>> iter = _knockbackMods.entrySet().iterator();
+			while(iter.hasNext())
+			{
+				Entry<String, Vector> entry = iter.next();
+				getPlayerDamager().sendMessage(entry.getKey());
+			}
+		}
+		*/
+
 		for (Vector v : _knockbackMods.values()) {
 			vec.add(v);
 		}
 
-		if (vec.length() > 0.1 && vec.getY() <= 0.1) {
-			vec.setY(0.1);
-		}
+		//useless
+		//if (vec.length() > 0.1 && vec.getY() <= 0.1) {
+		//	vec.setY(0.1);
+		//}
 
 		return vec;
 	}
@@ -744,7 +702,7 @@ public class CustomDamageEvent extends Event implements Cancellable {
 	}
 
 	public void removeKnockback(String name) {
-		_knockbackMods.remove(name);
+		_knockbackMods.remove(name); 
 	}
 
 	public void runRunnables(boolean predamage) {

@@ -673,16 +673,40 @@ public abstract class Game implements Listener {
 	        	  Bukkit.broadcastMessage(C.Blue + "Using lib's algorithm");
 	        	  event.setCancelled(true);
         	  }
-        	  else if(event.getMessage()[0].equalsIgnoreCase("kbrec"))
+        	  else if(event.getMessage()[0].equalsIgnoreCase("kbadjust"))
         	  {
         		  CustomDamageEvent.kbMode = 1;
-        		  Bukkit.broadcastMessage(C.Blue + "Using zelda alg");
+        		  Bukkit.broadcastMessage(C.Blue + "Using 1.8");
         		  event.setCancelled(true);
         	  }
         	  else if(event.getMessage()[0].equalsIgnoreCase("kbport"))
         	  {
         		  CustomDamageEvent.kbMode = 2;
-        		  Bukkit.broadcastMessage(C.Blue + "Using port of old code");
+        		  Bukkit.broadcastMessage(C.Blue + "Using zelda alg");
+        		  event.setCancelled(true);
+        	  }
+        	  else if(event.getMessage()[0].equalsIgnoreCase("kbsprint"))
+        	  {
+        		  CustomDamageEvent.sprintCancel = !CustomDamageEvent.sprintCancel;
+        		  Bukkit.broadcastMessage(C.Blue + "Cancelling sprint cancelling:" + CustomDamageEvent.sprintCancel);
+        		  event.setCancelled(true);
+        	  }
+        	  else if(event.getMessage()[0].equalsIgnoreCase("kbreduce"))
+        	  {
+        		  CustomDamageEvent.reduceVel = !CustomDamageEvent.reduceVel;
+        		  Bukkit.broadcastMessage(C.Blue + "Reduce velocity:" + CustomDamageEvent.reduceVel);
+        		  event.setCancelled(true);
+        	  }
+        	  else if(event.getMessage()[0].equalsIgnoreCase("kbpacket"))
+        	  {
+        		  CustomDamageEvent.velPacket = !CustomDamageEvent.velPacket;
+        		  Bukkit.broadcastMessage(C.Blue + "Sending packet immediately: " + CustomDamageEvent.velPacket);
+        		  event.setCancelled(true);
+        	  }
+        	  else if(event.getMessage()[0].equalsIgnoreCase("kbrate"))
+        	  {
+        		  CustomDamageEvent.attackRate = !CustomDamageEvent.attackRate;
+        		  Bukkit.broadcastMessage(C.Blue + "Using < instead of <= : " + CustomDamageEvent.attackRate);
         		  event.setCancelled(true);
         	  }
           }

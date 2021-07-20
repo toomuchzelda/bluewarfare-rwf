@@ -4,6 +4,7 @@ import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.events.ListenerPriority;
 import com.comphenix.protocol.events.PacketAdapter;
+import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.reflect.StructureModifier;
 import me.libraryaddict.core.C;
@@ -95,6 +96,10 @@ public class DamageManager extends MiniPlugin {
                 .addPacketListener(new PacketAdapter(getPlugin(), ListenerPriority.LOW, PacketType.Play.Server.ENTITY_VELOCITY) {
                     @Override
                     public void onPacketSending(PacketEvent event) {
+                    	
+                    	if(!CustomDamageEvent.reduceVel)
+                    		return;
+                    	
                         event.setPacket(event.getPacket().shallowClone());
 
                         StructureModifier<Integer> ints = event.getPacket().getIntegers();
@@ -124,11 +129,37 @@ public class DamageManager extends MiniPlugin {
     }
 
     private void applyKnockback(CustomDamageEvent event) {
-        if (event.getFinalKnockback().length() <= 0) {
+    	Vector knockback = event.getFinalKnockback();
+        if (knockback.length() <= 0) {
             return;
         }
-
-        UtilEnt.velocity(event.getDamagee(), event.getFinalKnockback(), false);
+        
+        if(CustomDamageEvent.velPacket && event.isPlayerDamagee())
+        {
+        	Player damagee = event.getPlayerDamagee();
+        	
+        	//send packet
+        	PacketContainer knockbackPacket = new PacketContainer(PacketType.Play.Server.ENTITY_VELOCITY);
+        	
+        	StructureModifier<Integer> ints = knockbackPacket.getIntegers();
+        	
+        	ints.write(0, damagee.getEntityId());
+        	ints.write(1, (int) (knockback.getX() * 8000));
+        	ints.write(2, (int) (knockback.getY() * 8000));
+        	ints.write(3, (int) (knockback.getZ() * 8000));
+        	
+        	EntityPlayer nmsPlayer = ((CraftPlayer) (damagee)).getHandle();
+        	nmsPlayer.velocityChanged = false;
+//        	entity.velocityChanged = false;
+//            entity.motX = d0;
+//            entity.motY = d1;
+//            entity.motZ = d2;
+        	
+        	UtilPlayer.sendPacket(damagee, knockbackPacket);
+        	//Bukkit.broadcastMessage("sent vel packet to " + damagee.getName());
+        }
+        else
+        	UtilEnt.velocity(event.getDamagee(), knockback, false);
 
         ConditionManager.addFall(event.getDamagee(), event.getFinalDamager());
     }
@@ -306,8 +337,16 @@ public class DamageManager extends MiniPlugin {
         int damageTicks = UtilTime.currentTick - pair.getKey();
 
         //previously less than or equal to
-        if (damageTicks < damagee.getMaximumNoDamageTicks() / 2F)
-            return false;
+        if(CustomDamageEvent.attackRate)
+        {
+        	if (damageTicks < damagee.getMaximumNoDamageTicks() / 2F)
+        		return false;
+        }
+        else
+        {
+        	if (damageTicks <= damagee.getMaximumNoDamageTicks() / 2F)
+        		return false;
+        }
 
         if (damage <= pair.getValue() + 0.001)
             return false;
@@ -330,8 +369,16 @@ public class DamageManager extends MiniPlugin {
         int damageTicks = UtilTime.currentTick - pair.getKey();
 
         //previously less than or equal to
-        if (damageTicks < damagee.getMaximumNoDamageTicks() / 2F)
-            return false;
+        if(CustomDamageEvent.attackRate)
+        {
+	        if (damageTicks < damagee.getMaximumNoDamageTicks() / 2F)
+	            return false;
+        }
+        else
+        {
+        	if (damageTicks <= damagee.getMaximumNoDamageTicks() / 2F)
+	            return false;
+        }
 
         return true;
     }
@@ -367,9 +414,13 @@ public class DamageManager extends MiniPlugin {
                 event.addRunnable(new DamageRunnable("Sprinting") {
                     @Override
                     public void run(CustomDamageEvent event2) {
-                        ((Player) cause).setSprinting(false);
-
+                    	//Bukkit method sends attribute packet which halts sprinting
+                        //((Player) cause).setSprinting(false);
                         EntityPlayer player = ((CraftPlayer) cause).getHandle();
+                        if(CustomDamageEvent.sprintCancel)
+                        	player.setFlag(3, false);
+                        else
+                        	((Player) cause).setSprinting(false);
 
                         Vec3D currentMot = player.getMot();
                         //player.motX *= 0.6;
@@ -525,10 +576,9 @@ public class DamageManager extends MiniPlugin {
     @EventHandler
     public void onDamageCaller(EntityDamageEvent event)
     {
-    	LivingEntity living;
     	if(event.getEntity() instanceof LivingEntity)
     	{
-    		living = (LivingEntity) event.getEntity();
+    		LivingEntity living = (LivingEntity) event.getEntity();
     		living.setNoDamageTicks(getAltNoDamageTicks(living));
     		//Bukkit.broadcastMessage(living.getName() + "has " + getAltNoDamageTicks(living) + " NDT");
     		
@@ -578,10 +628,10 @@ public class DamageManager extends MiniPlugin {
                         && !canAttemptHit(damager, (LivingEntity) event.getEntity())) {
                     return;
                 }
-                else
-                {
-                	 ((Player) damager).sendMessage("ndt: " + ((LivingEntity) event.getEntity()).getNoDamageTicks());
-                }
+                //else
+                //{
+                //	 ((Player) damager).sendMessage("ndt: " + ((LivingEntity) event.getEntity()).getNoDamageTicks());
+                //}
             }
         }
 
@@ -600,7 +650,12 @@ public class DamageManager extends MiniPlugin {
             }
         }
         }*/
-
+        if(event.getEntity() instanceof LivingEntity)
+        {
+        	LivingEntity living = (LivingEntity) event.getEntity();
+        	Bukkit.broadcastMessage(living.getName() + " ndt: " + getAltNoDamageTicks(living));
+        }
+        
         CustomDamageEvent newEvent = newDamage(event.getEntity(), attackType, damage, damager);
 
         if (!(newEvent.getDamagee() instanceof Damageable)) {
@@ -715,12 +770,11 @@ public class DamageManager extends MiniPlugin {
     }
 
     private Vector reduceVelocity(LivingEntity entity, double motX, double motY, double motZ) {
-        float frictionIGuess = 0.91f;
+        float friction = 0.91f;
         if (entity.isOnGround()) {
-            frictionIGuess *= getFrictionFactor(entity.getLocation().getBlock().getRelative(BlockFace.DOWN).getType());
+            friction *= getFrictionFactor(entity.getLocation().getBlock().getRelative(BlockFace.DOWN).getType());
         }
 
-        //unsure if not climbing or climbing
         if (UtilEnt.isClimbing(entity)) {
             motX = UtilMath.clamp(motX, -0.15, 0.15); // that many digits is overkill
             motZ = UtilMath.clamp(motZ, -0.15, 0.15);
@@ -750,8 +804,8 @@ public class DamageManager extends MiniPlugin {
         // System.out.println(MinecraftServer.currentTick + " Pre 3. " + motZ);
 
         motY *= 0.98;
-        motX *= frictionIGuess;
-        motZ *= frictionIGuess;
+        motX *= friction;
+        motZ *= friction;
         // System.out.println(MinecraftServer.currentTick + " 3. " + motZ);
 
         return new Vector(motX, motY, motZ);
