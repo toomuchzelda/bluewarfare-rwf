@@ -3,9 +3,11 @@ package me.libraryaddict.core.damage;
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.events.ListenerPriority;
+import com.comphenix.protocol.events.ListeningWhitelist;
 import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
+import com.comphenix.protocol.events.PacketListener;
 import com.comphenix.protocol.reflect.StructureModifier;
 import me.libraryaddict.core.C;
 import me.libraryaddict.core.Pair;
@@ -26,6 +28,7 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftEntity;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftLivingEntity;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_16_R3.util.CraftVector;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
@@ -35,8 +38,10 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.lang.reflect.Method;
@@ -134,11 +139,40 @@ public class DamageManager extends MiniPlugin {
             return;
         }
         
+        if(CustomDamageEvent.useImpulse)
+        {
+	        net.minecraft.server.v1_16_R3.Entity nmsEntity = ((CraftEntity) (event.getDamagee())).getHandle();
+	        nmsEntity.impulse = true;
+        }
+        
         if(CustomDamageEvent.velPacket && event.isPlayerDamagee())
         {
         	Player damagee = event.getPlayerDamagee();
+        	EntityPlayer nmsPlayer = ((CraftPlayer) (damagee)).getHandle();
+        	
+        	//ap = hurt direction
+        	/*
+        	double attackerX = event.getDamager().getLocation().getX();
+        	double xDiff = attackerX - damagee.getLocation().getX();
+        	double attackerZ = event.getDamager().getLocation().getZ();
+        	double zDiff;
+        	
+        	double victimZ = damagee.getLocation().getZ();
+        	
+        	for (zDiff = attackerZ - victimZ; xDiff * xDiff + zDiff * zDiff < 1.0E-4D; zDiff = (Math.random() - Math.random()) * 0.01D) {
+                xDiff = (Math.random() - Math.random()) * 0.01D;
+            }
+        	nmsPlayer.ap = (float) (MathHelper.d(zDiff, xDiff) * 57.2957763671875D - (double) nmsPlayer.yaw);
+        	*/
+            
+        	//if(damagee.isOnGround())
+        	//	Bukkit.broadcastMessage("damagee on ground");
+        	
+        	//Vec3D mot = nmsPlayer.getMot();
+        	//Vec3D currentMot = new Vec3D(mot.getX(), mot.getY(), mot.getZ());
         	
         	//send packet
+        	/*
         	PacketContainer knockbackPacket = new PacketContainer(PacketType.Play.Server.ENTITY_VELOCITY);
         	
         	StructureModifier<Integer> ints = knockbackPacket.getIntegers();
@@ -148,14 +182,20 @@ public class DamageManager extends MiniPlugin {
         	ints.write(2, (int) (knockback.getY() * 8000));
         	ints.write(3, (int) (knockback.getZ() * 8000));
         	
-        	EntityPlayer nmsPlayer = ((CraftPlayer) (damagee)).getHandle();
+        	
+        	UtilPlayer.sendPacket(damagee, knockbackPacket);
+        	*/
+        	PacketPlayOutEntityVelocity kbPacket = 
+        			new PacketPlayOutEntityVelocity(damagee.getEntityId(), CraftVector.toNMS(knockback));;
+        	nmsPlayer.playerConnection.sendPacket(kbPacket);
         	nmsPlayer.velocityChanged = false;
+        	//nmsPlayer.setMot(currentMot);
 //        	entity.velocityChanged = false;
 //            entity.motX = d0;
 //            entity.motY = d1;
 //            entity.motZ = d2;
         	
-        	UtilPlayer.sendPacket(damagee, knockbackPacket);
+        	
         	//Bukkit.broadcastMessage("sent vel packet to " + damagee.getName());
         }
         else
@@ -276,7 +316,12 @@ public class DamageManager extends MiniPlugin {
                 LivingEntity living = event.getLivingDamagee();
 
                 EntityLiving nms = ((CraftLivingEntity) living).getHandle();
-                nms.aw = 1.5F;
+                
+                if(CustomDamageEvent.useAv)
+                	nms.av = 1.5f;
+                else
+                	nms.aw = 1.5f;
+                
 
                 if (!event.isIgnoreRate() && living.getNoDamageTicks() > living.getMaximumNoDamageTicks() / 2.0F) {
                     damageEntity(living, damage - living.getLastDamage(), false);
@@ -650,11 +695,13 @@ public class DamageManager extends MiniPlugin {
             }
         }
         }*/
+        /*
         if(event.getEntity() instanceof LivingEntity)
         {
         	LivingEntity living = (LivingEntity) event.getEntity();
         	Bukkit.broadcastMessage(living.getName() + " ndt: " + getAltNoDamageTicks(living));
         }
+        */
         
         CustomDamageEvent newEvent = newDamage(event.getEntity(), attackType, damage, damager);
 
@@ -698,7 +745,7 @@ public class DamageManager extends MiniPlugin {
         	int tick = UtilTime.currentTick - entry.getValue();
         	
         	//just cover every case except if its >= 200
-        	if(!(tick < 200))
+        	if(tick >= 200)
         	{
         		itel2.remove();
         	}

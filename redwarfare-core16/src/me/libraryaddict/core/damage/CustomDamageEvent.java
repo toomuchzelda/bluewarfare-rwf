@@ -47,11 +47,18 @@ public class CustomDamageEvent extends Event implements Cancellable {
 	
 	//for switching kb modes
 	//1 for myWay, 2 for oldWay, 0 for lib
-	public static int kbMode = 2;
+	public static int kbMode = 1;
 	public static boolean sprintCancel = true;
-	public static boolean reduceVel = true;
-	public static boolean velPacket = false;
-	public static boolean attackRate = false;
+	public static boolean reduceVel = false;
+	public static boolean velPacket = true;
+	public static boolean attackRate = true;
+	public static boolean useAv = false;
+	public static boolean useImpulse = false;
+	
+	public static double yVal = 0.4;
+	public static double xzVal = 0.4;
+	public static double yMult = 0.1;
+	public static double xzMult = 1;
 
 	public CustomDamageEvent(Entity damagee, AttackType attackType, double damage) {
 		_attackType = attackType;
@@ -159,7 +166,7 @@ public class CustomDamageEvent extends Event implements Cancellable {
 	private Vector recalculateKnockbackAdjusted()
 	{
 		Vector toReturn = _knockback.clone();
-
+		
         if (getDamager() != null)
         {
         	Vector offset;
@@ -192,10 +199,10 @@ public class CustomDamageEvent extends Event implements Cancellable {
                 vec.setY(vec.getY() / 2);
                 vec.setZ(vec.getZ() / 2);
 
-                vec.add(new Vector(-(xDist / dist * 0.4), 0.4, -(zDist / dist * 0.4)));
+                vec.add(new Vector(-(xDist / dist * xzVal), yVal, -(zDist / dist * xzVal)));
 
-                if(vec.getY() > 0.4)
-                	vec.setY(0.4);
+                if(vec.getY() > yVal)
+                	vec.setY(yVal);
                 
                 toReturn.add(vec);
             }
@@ -209,6 +216,7 @@ public class CustomDamageEvent extends Event implements Cancellable {
 
             if (level != 0)
             {
+            	level *= xzMult;
                 level /= 2;
 
                 Entity damager = getDamager();
@@ -217,7 +225,7 @@ public class CustomDamageEvent extends Event implements Cancellable {
 				double xKb = (double) -Math.sin(damager.getLocation().getYaw() * 3.1415927F / 180.0f) * (float) level;
 				double zKb = (double) Math.cos(damager.getLocation().getYaw() * 3.1415927F / 180.0f) * (float) level;
 
-				kbEnch = new Vector(xKb, 0.1d, zKb);
+				kbEnch = new Vector(xKb, yMult, zKb);
 				toReturn.add(kbEnch);
             }
         }
