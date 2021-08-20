@@ -61,9 +61,6 @@ public class DamageManager extends MiniPlugin {
     //				damagee, tick
     private HashMap<Integer, Integer> _altNoDamageTicks = new HashMap<>();
     
-    //to store attacks that come 1 tick early and execute 1 tick later
-    //private HashMap<Integer, EntityDamageEvent> _attackBuffer = new HashMap<>();
-
     public DamageManager(JavaPlugin plugin, CombatManager combatManager) {
         super(plugin, "Damage Manager");
 
