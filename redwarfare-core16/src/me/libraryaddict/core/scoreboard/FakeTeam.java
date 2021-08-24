@@ -7,12 +7,13 @@ import me.libraryaddict.core.CentralManager;
 import me.libraryaddict.core.data.EnumChatFormatHelper;
 import me.libraryaddict.core.utils.UtilError;
 import me.libraryaddict.core.utils.UtilPlayer;
-import net.minecraft.server.v1_16_R3.EnumChatFormat;
-import net.minecraft.server.v1_16_R3.IChatBaseComponent;
-import net.minecraft.server.v1_16_R3.ScoreboardTeam;
+//import net.minecraft.server.v1_16_R3.EnumChatFormat;
+import net.minecraft.ChatFormatting;
+//import net.minecraft.server.v1_16_R3.IChatBaseComponent;
+import net.minecraft.network.chat.Component;
+//import net.minecraft.server.v1_16_R3.ScoreboardTeam;
+import net.minecraft.world.scores.PlayerTeam;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Color;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
@@ -21,11 +22,10 @@ import org.bukkit.scoreboard.Team.Option;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Optional;
 
 public class FakeTeam {
     private FakeScoreboard _fakeScoreboard;
-    private ScoreboardTeam _nmsTeam;
+    private PlayerTeam _nmsTeam;
     private HashMap<Team.Option, Team.OptionStatus> _options = new HashMap<Team.Option, Team.OptionStatus>();
     private ArrayList<String> _players = new ArrayList<String>();
     private String _prefix = "";
@@ -179,7 +179,8 @@ public class FakeTeam {
         WrappedChatComponent components = WrappedChatComponent.fromText(prefix);
 
         try {
-            _nmsTeam.setPrefix((IChatBaseComponent) components.getHandle());
+            //_nmsTeam.setPrefix((IChatBaseComponent) components.getHandle());
+            _nmsTeam.setPlayerPrefix((Component) components.getHandle());
         } catch (Exception ex) {
             UtilError.handle(ex);
         }
@@ -218,7 +219,8 @@ public class FakeTeam {
 
         try {
             // how convenient
-            _nmsTeam.setSuffix((IChatBaseComponent) components.getHandle());
+            //_nmsTeam.setSuffix((IChatBaseComponent) components.getHandle());
+            _nmsTeam.setPlayerSuffix((Component) components.getHandle());
         } catch (Exception ex) {
             UtilError.handle(ex);
         }
@@ -321,8 +323,8 @@ public class FakeTeam {
         }
 
         try {
-            _setPrefix = ScoreboardTeam.class.getDeclaredField("e");
-            _setSuffix = ScoreboardTeam.class.getDeclaredField("f");
+            _setPrefix = PlayerTeam.class.getDeclaredField("e");
+            _setSuffix = PlayerTeam.class.getDeclaredField("f");
 
             _setPrefix.setAccessible(true);
             _setSuffix.setAccessible(true);
@@ -330,7 +332,7 @@ public class FakeTeam {
             Field field = Class.forName("org.bukkit.craftbukkit.v1_16_R3.scoreboard.CraftTeam").getDeclaredField("team");
             field.setAccessible(true);
 
-            _nmsTeam = (ScoreboardTeam) field.get(_team);
+            _nmsTeam = (PlayerTeam) field.get(_team);
         } catch (Exception ex) {
             UtilError.handle(ex);
         }
@@ -358,7 +360,8 @@ public class FakeTeam {
     		team.setColor(colorCode);
     	}
     	
-    	EnumChatFormat enumChat = EnumChatFormatHelper.enumChatFromString(colorCode);
+    	ChatFormatting enumChat = EnumChatFormatHelper.enumChatFromString(colorCode);
+    	
     	
     	//System.out.println("setColor running, enumChat toString is: " + enumChat.toString());
     	

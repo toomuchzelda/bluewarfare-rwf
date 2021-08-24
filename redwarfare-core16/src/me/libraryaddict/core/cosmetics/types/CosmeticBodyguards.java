@@ -1,5 +1,6 @@
 package me.libraryaddict.core.cosmetics.types;
 
+import com.mojang.math.Vector3f;
 import me.libraryaddict.core.Pair;
 import me.libraryaddict.core.cosmetics.Cosmetic;
 import me.libraryaddict.core.fakeentity.FakeEntity;
@@ -9,7 +10,8 @@ import me.libraryaddict.core.time.TimeEvent;
 import me.libraryaddict.core.time.TimeType;
 import me.libraryaddict.core.utils.*;
 import me.libraryaddict.disguise.disguisetypes.MetaIndex;
-import net.minecraft.server.v1_16_R3.Vector3f;
+//import net.minecraft.server.v1_16_R3.Vector3f;
+
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;

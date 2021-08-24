@@ -6,12 +6,9 @@ import me.libraryaddict.core.utils.UtilEnt;
 import me.libraryaddict.core.utils.UtilError;
 import me.libraryaddict.core.utils.UtilMath;
 import me.libraryaddict.core.utils.UtilParticle;
-import net.minecraft.server.v1_16_R3.AttributeModifier;
-
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
-import org.bukkit.attribute.Attribute;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.*;
 import org.bukkit.event.Cancellable;
