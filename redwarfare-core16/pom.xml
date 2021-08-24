@@ -20,6 +20,11 @@
 		<dependency>
 			<groupId>org.spigotmc</groupId>
 			<artifactId>spigot</artifactId>
+			<classifier>remapped-mojang</classifier>
+		</dependency>
+		<dependency>
+			<groupId>org.spigotmc</groupId>
+			<artifactId>spigot-api</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>net.lingala.zip4j</groupId>
@@ -51,7 +56,6 @@
 	<build>
 		<resources>
 			<resource>
-				<directory />
 				<includes>
 					<include>ascii.png</include>
 				</includes>
