@@ -72,23 +72,28 @@ public class DamageManager extends MiniPlugin {
 
         try {
             //                                                                                     damageArmor
-            _damageArmor = net.minecraft.world.entity.LivingEntity.class.getDeclaredMethod("hurtArmor", DamageSource.class, float.class);
+            // MM: hurtArmor, obf: b
+            _damageArmor = net.minecraft.world.entity.LivingEntity.class.getDeclaredMethod("b", DamageSource.class, float.class);
             _damageArmor.setAccessible(true);
 
             //                                                                                     getSoundDeath
-            _deathSound = net.minecraft.world.entity.LivingEntity.class.getDeclaredMethod("getDeathSound");
+            // MM: getDeathSound, obf: v_
+            _deathSound = net.minecraft.world.entity.LivingEntity.class.getDeclaredMethod("v_");
             _deathSound.setAccessible(true);
 
             //                                                                                  getSoundHurt
-            _hurtSound = net.minecraft.world.entity.LivingEntity.class.getDeclaredMethod("getHurtSound", DamageSource.class);
+            // MM: getHurtSound, obf: c
+            _hurtSound = net.minecraft.world.entity.LivingEntity.class.getDeclaredMethod("c", DamageSource.class);
             _hurtSound.setAccessible(true);
         
             //                                                                               getSoundVolume
-            _radius = net.minecraft.world.entity.LivingEntity.class.getDeclaredMethod("getSoundVolume");
+            // MM: getSoundVolume, obf: eo
+            _radius = net.minecraft.world.entity.LivingEntity.class.getDeclaredMethod("eo");
             _radius.setAccessible(true);
 
             //                                                                               dH
-            _pitch = net.minecraft.world.entity.LivingEntity.class.getDeclaredMethod("getVoicePitch");
+            // MM: getVoicePitch, obj: ep
+            _pitch = net.minecraft.world.entity.LivingEntity.class.getDeclaredMethod("ep");
             _pitch.setAccessible(true);
         } catch (Exception ex) {
             UtilError.handle(ex);

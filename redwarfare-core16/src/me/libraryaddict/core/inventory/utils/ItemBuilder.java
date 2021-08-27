@@ -6,10 +6,10 @@ import me.libraryaddict.core.C;
 import me.libraryaddict.core.utils.LineFormat;
 import me.libraryaddict.core.utils.UtilInv;
 import me.libraryaddict.core.utils.UtilText;
-import net.minecraft.server.v1_16_R3.GameProfileSerializer;
-import net.minecraft.server.v1_16_R3.NBTTagCompound;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtUtils;
 import org.bukkit.*;
-import org.bukkit.craftbukkit.v1_16_R3.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_17_R1.inventory.CraftItemStack;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
@@ -237,16 +237,20 @@ public class ItemBuilder {
 
         //previously				   SKULL_ITEM
         if (item.getType() == Material.PLAYER_HEAD && _skullProfile != null) {
-            net.minecraft.server.v1_16_R3.ItemStack nms = CraftItemStack.asNMSCopy(item);
+            //net.minecraft.server.v1_16_R3.ItemStack nms = CraftItemStack.asNMSCopy(item);
+            net.minecraft.world.item.ItemStack nms = CraftItemStack.asNMSCopy(item);
 
-            NBTTagCompound nbt = new NBTTagCompound();
+            //NBTTagCompound nbt = new NBTTagCompound();
+            CompoundTag nbt = new CompoundTag();
 
             if (nms.getTag() == null) {
-                nms.setTag(new NBTTagCompound());
+                nms.setTag(new CompoundTag());
             }
-
-            GameProfileSerializer.serialize(nbt, _skullProfile);
-            nms.getTag().set("SkullOwner", nbt);
+            
+            //      serialize
+            NbtUtils.writeGameProfile(nbt, _skullProfile);
+            //          set
+            nms.getTag().put("SkullOwner", nbt);
 
             item = CraftItemStack.asBukkitCopy(nms);
         }

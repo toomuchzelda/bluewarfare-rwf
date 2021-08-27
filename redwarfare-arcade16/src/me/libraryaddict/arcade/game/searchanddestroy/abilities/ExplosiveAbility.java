@@ -16,13 +16,11 @@ import me.libraryaddict.core.utils.UtilParticle.ViewDist;
 import me.libraryaddict.disguise.DisguiseAPI;
 import me.libraryaddict.disguise.disguisetypes.DisguiseType;
 import me.libraryaddict.disguise.disguisetypes.MiscDisguise;
-import net.minecraft.server.v1_16_R3.EntityArrow;
-import net.minecraft.server.v1_16_R3.EntityTippedArrow;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
-import org.bukkit.craftbukkit.v1_16_R3.entity.CraftEgg;
-import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_17_R1.entity.CraftEgg;
+import org.bukkit.craftbukkit.v1_17_R1.entity.CraftPlayer;
 import org.bukkit.entity.*;
 import org.bukkit.event.Event.Result;
 import org.bukkit.event.EventHandler;
@@ -102,9 +100,10 @@ public class ExplosiveAbility extends Ability {
 
         MiscDisguise arrowDisguise = new MiscDisguise(DisguiseType.EGG);
 
-        EntityArrow eArrow = new EntityTippedArrow(((CraftEgg) egg).getHandle().getWorld(), loc.getX(), loc.getY(), loc.getZ());
-        eArrow.fromPlayer = EntityArrow.PickupStatus.DISALLOWED;
-        eArrow.setShooter(((CraftPlayer) shooter).getHandle());
+        net.minecraft.world.entity.projectile.AbstractArrow eArrow =
+                new net.minecraft.world.entity.projectile.Arrow(((CraftEgg) egg).getHandle().getCommandSenderWorld(), loc.getX(), loc.getY(), loc.getZ());
+        eArrow.pickup = net.minecraft.world.entity.projectile.AbstractArrow.Pickup.DISALLOWED;
+        eArrow.setOwner(((CraftPlayer) shooter).getHandle());
         eArrow.getBukkitEntity().setVelocity(vec);
 
         Arrow arrow = (Arrow) eArrow.getBukkitEntity();
@@ -113,7 +112,7 @@ public class ExplosiveAbility extends Ability {
         arrowDisguise.setEntity(arrow);
         arrowDisguise.startDisguise();
 
-        ((CraftEgg) egg).getHandle().getWorld().addEntity(eArrow, SpawnReason.CUSTOM);
+        ((CraftEgg) egg).getHandle().getCommandSenderWorld().addEntity(eArrow, SpawnReason.CUSTOM);
 
         _rpgs.add(arrow);
 

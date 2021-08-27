@@ -27,8 +27,8 @@ import me.libraryaddict.core.time.TimeEvent;
 import me.libraryaddict.core.time.TimeType;
 import me.libraryaddict.core.utils.*;
 import me.libraryaddict.redis.operations.RedisJoinServerType;
-import net.minecraft.server.v1_16_R3.MinecraftServer;
-import net.minecraft.server.v1_16_R3.PlayerList;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.players.PlayerList;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -251,7 +251,8 @@ public class GameManager extends MiniPlugin {
         ServerType toMake = _nextGame == null ? getManager().getServer().getGameType() : _nextGame;
 
         try {
-            Field field = PlayerList.class.getDeclaredField("maxPlayers");
+            //                                                  maxPlayers
+            Field field = PlayerList.class.getDeclaredField("f");
             field.setAccessible(true);
             field.set(MinecraftServer.getServer().getPlayerList(), toMake.getMaxPlayers());
         } catch (Exception ex) {

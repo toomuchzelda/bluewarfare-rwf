@@ -8,11 +8,12 @@ import me.libraryaddict.arcade.game.searchanddestroy.kits.KitWraith;
 import me.libraryaddict.arcade.kits.Kit;
 import me.libraryaddict.core.utils.UtilInv;
 import me.libraryaddict.core.utils.UtilPlayer;
-import net.minecraft.server.v1_16_R3.Entity;
-import org.bukkit.craftbukkit.v1_16_R3.entity.CraftEntity;
+import net.minecraft.world.entity.Entity;
+import org.bukkit.craftbukkit.v1_17_R1.entity.CraftEntity;
 import org.bukkit.entity.Player;
 
-public class PathfinderSelector implements Predicate<Entity> {
+public class PathfinderSelector implements Predicate<Entity>
+{
     private SearchAndDestroy _searchAndDestroy;
     private GameTeam _team;
 

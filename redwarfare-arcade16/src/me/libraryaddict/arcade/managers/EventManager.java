@@ -19,8 +19,9 @@ import me.libraryaddict.core.stats.Stats;
 import me.libraryaddict.core.time.TimeEvent;
 import me.libraryaddict.core.time.TimeType;
 import me.libraryaddict.core.utils.*;
+import net.minecraft.world.entity.projectile.FishingHook;
 import org.bukkit.*;
-import org.bukkit.craftbukkit.v1_16_R3.entity.CraftFishHook;
+import org.bukkit.craftbukkit.v1_17_R1.entity.CraftFishHook;
 import org.bukkit.entity.*;
 import org.bukkit.event.Event.Result;
 import org.bukkit.event.EventHandler;
@@ -47,7 +48,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.DisplaySlot;
-import org.bukkit.util.Vector;
 
 import java.util.Iterator;
 import java.util.Objects;
@@ -491,12 +491,13 @@ public class EventManager extends MiniPlugin {
         if (event.getEntityType() != EntityType.FISHING_HOOK)
             return;
 
-        net.minecraft.server.v1_16_R3.EntityFishingHook nms = ((CraftFishHook) event.getEntity()).getHandle();
+        FishingHook nms = ((CraftFishHook) event.getEntity()).getHandle();
+        
 
         new BukkitRunnable() {
             public void run() {
-                // nms.k() gets the Entity hooked field of EntityFishingHook nms
-                if (nms.k() == null || isAlive(nms.k().getBukkitEntity())) {
+                // nms.k() gets the Entity hooked field of EntityFishingHook nms :: 1.16.4
+                if (nms.getHookedIn() == null || isAlive(nms.getHookedIn().getBukkitEntity())) {
                     return;
                 }
 

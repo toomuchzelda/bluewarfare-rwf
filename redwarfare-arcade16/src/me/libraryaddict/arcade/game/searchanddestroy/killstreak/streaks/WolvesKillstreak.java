@@ -16,13 +16,13 @@ import me.libraryaddict.core.utils.UtilInv;
 import me.libraryaddict.core.utils.UtilLoc;
 import me.libraryaddict.core.utils.UtilMath;
 import me.libraryaddict.core.utils.UtilPlayer;
-import net.minecraft.server.v1_16_R3.EntityCreature;
-import net.minecraft.server.v1_16_R3.NavigationAbstract;
+import net.minecraft.world.entity.PathfinderMob;
+import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import org.bukkit.EntityEffect;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.craftbukkit.v1_16_R3.entity.CraftCreature;
+import org.bukkit.craftbukkit.v1_17_R1.entity.CraftCreature;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.entity.EntityTargetEvent;
@@ -105,9 +105,9 @@ public class WolvesKillstreak extends StreakBase {
                         speed = 1.4f;
 
                     // Move
-                    EntityCreature ec = ((CraftCreature) wolf).getHandle();
-                    NavigationAbstract nav = ec.getNavigation();
-                    nav.a(target.getX(), target.getY(), target.getZ(), speed);
+                    PathfinderMob ec = ((CraftCreature) wolf).getHandle();
+                    PathNavigation nav = ec.getNavigation();
+                    nav.moveTo(target.getX(), target.getY(), target.getZ(), speed);
 
                     wolf.setTarget(null);
                 }
