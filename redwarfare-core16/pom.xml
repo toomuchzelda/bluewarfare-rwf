@@ -56,6 +56,7 @@
 	<build>
 		<resources>
 			<resource>
+				<directory>out</directory>
 				<includes>
 					<include>ascii.png</include>
 				</includes>
