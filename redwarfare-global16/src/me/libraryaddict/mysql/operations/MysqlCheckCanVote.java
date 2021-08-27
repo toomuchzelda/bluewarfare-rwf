@@ -19,7 +19,8 @@ public class MysqlCheckCanVote extends DatabaseOperation {
     public MysqlCheckCanVote(UUID uuid, String... sites) {
         try (Connection con = getMysql()) {
             PreparedStatement stmt = con
-                    .prepareStatement("SELECT `date` FROM vote_log WHERE player = ? AND site = ? ORDER BY `date` DESC");
+                    .prepareStatement("SELECT `date` FROM vote_log WHERE player = ? AND site = ? ORDER BY `date` DESC"
+                    , ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
 
             stmt.setString(1, uuid.toString());
 

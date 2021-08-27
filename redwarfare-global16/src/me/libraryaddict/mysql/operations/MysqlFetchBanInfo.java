@@ -19,7 +19,7 @@ public class MysqlFetchBanInfo extends DatabaseOperation {
     // Can be UUID, IP
     public MysqlFetchBanInfo(String name) {
         try (Connection con = getMysql()) {
-            Statement stmt = con.createStatement();
+            Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
             String uuid = name;
 
             if (name.contains("-")) {

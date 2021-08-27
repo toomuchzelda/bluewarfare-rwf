@@ -11,7 +11,7 @@ public class MysqlSaveError extends DatabaseOperation {
     public MysqlSaveError(String server, String error) {
         if (error.contains("Plugin attempted to register task while disabled"))
             return;
-
+        
         if (error.length() > 5000)
             error = error.substring(0, 5000);
 
@@ -19,7 +19,9 @@ public class MysqlSaveError extends DatabaseOperation {
             return;
 
         try (Connection con = getMysql()) {
-            PreparedStatement stmt = con.prepareStatement("SELECT `server` FROM errors WHERE error = ? LIMIT 0,1");
+            PreparedStatement stmt = con.prepareStatement(
+                    "SELECT `server` FROM errors WHERE error = ? LIMIT 0,1", ResultSet.TYPE_SCROLL_INSENSITIVE,
+                    ResultSet.CONCUR_READ_ONLY);
             stmt.setString(1, error);
 
             ResultSet rs = stmt.executeQuery();

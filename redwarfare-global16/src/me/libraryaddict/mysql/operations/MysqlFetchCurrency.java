@@ -15,7 +15,8 @@ public class MysqlFetchCurrency extends DatabaseOperation {
 
     public MysqlFetchCurrency(UUID uuid) {
         try (Connection con = getMysql()) {
-            PreparedStatement stmt = con.prepareStatement("SELECT * FROM currency WHERE uuid = ?");
+            PreparedStatement stmt = con.prepareStatement("SELECT * FROM currency WHERE uuid = ?",
+                    ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
             stmt.setString(1, uuid.toString());
 
             ResultSet rs = stmt.executeQuery();

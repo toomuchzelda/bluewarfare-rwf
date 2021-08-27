@@ -22,7 +22,7 @@ public class MysqlFetchPlayerHistory extends DatabaseOperation
         {
             con = getMysql();
 
-            Statement stmt = con.createStatement();
+            Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
 
             ResultSet rs = stmt.executeQuery("SELECT * FROM playerinfo WHERE uuid = '" + uuid + "'");
 

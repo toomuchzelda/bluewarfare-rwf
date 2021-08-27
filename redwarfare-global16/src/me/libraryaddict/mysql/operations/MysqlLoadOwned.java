@@ -16,7 +16,7 @@ public class MysqlLoadOwned extends DatabaseOperation {
         _playerData = new PlayerOwned(uuid);
 
         try (Connection con = getMysql()) {
-            Statement stmt = con.createStatement();
+            Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
 
             ResultSet rs = stmt.executeQuery("SELECT `type` FROM owned WHERE uuid = '" + uuid.toString() + "'");
 
