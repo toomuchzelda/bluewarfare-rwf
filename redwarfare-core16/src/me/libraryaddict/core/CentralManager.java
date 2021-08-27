@@ -52,6 +52,8 @@ import org.bukkit.World;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.craftbukkit.libs.it.unimi.dsi.fastutil.ints.IntArrayList;
+import org.bukkit.craftbukkit.libs.it.unimi.dsi.fastutil.ints.IntList;
 import org.bukkit.craftbukkit.v1_17_R1.CraftServer;
 import org.bukkit.craftbukkit.v1_17_R1.CraftWorld;
 import org.bukkit.entity.*;
@@ -298,7 +300,9 @@ public abstract class CentralManager extends MiniPlugin {
                         if (_disabledFakePlayers)
                             return;
 
-                        int[] entityIds = event.getPacket().getIntegerArrays().read(0);
+                        //intlists stupid
+                        IntList cringe = (IntList) event.getPacket().getModifier().read(0);
+                        int[] entityIds = cringe.toIntArray();
                         int length = entityIds.length;
 
                         for (int i = 0; i < length; i++) {
@@ -313,8 +317,10 @@ public abstract class CentralManager extends MiniPlugin {
                                 entityIds[(entityIds.length - 4) + b] = ids[b];
                             }
                         }
-
-                        event.getPacket().getIntegerArrays().write(0, entityIds);
+                        
+                        cringe = new IntArrayList(entityIds);
+                        event.getPacket().getModifier().write(0, cringe);
+                        //event.getPacket().getIntegerArrays().write(0, entityIds);
                     }
                 });
     }
@@ -393,7 +399,10 @@ public abstract class CentralManager extends MiniPlugin {
             array = new int[0];
         }
 
-        delete.getIntegerArrays().write(0, array);
+        //delete.getIntegerArrays().write(0, array);
+        //what the fuck is an IntList and why use it over an array
+        IntList intlist = new IntArrayList(array);
+        delete.getModifier().write(0, intlist);
 
         return delete;
     }
@@ -713,4 +722,6 @@ public abstract class CentralManager extends MiniPlugin {
 
         _disabledFakePlayers = disablePlayers;
     }
+    
+    
 }
