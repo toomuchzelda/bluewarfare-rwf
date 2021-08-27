@@ -7,6 +7,7 @@ import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.reflect.StructureModifier;
 import me.libraryaddict.core.C;
+import me.libraryaddict.core.CentralManager;
 import me.libraryaddict.core.Pair;
 import me.libraryaddict.core.combat.CombatEvent;
 import me.libraryaddict.core.combat.CombatManager;
@@ -64,36 +65,38 @@ public class DamageManager extends MiniPlugin {
             AttackType attack = AttackType.getAttack(cause);
 
             if (attack == null || attack == AttackType.UNKNOWN) {
-                System.err.print("The DamageCause '" + cause.name() + "' has not been registered as an attack type");
+                //System.err.print("The DamageCause '" + cause.name() + "' has not been registered as an attack type");
+                getPlugin().getLogger().warning("The DamageCause '" + cause.name() +
+                        "' has not been registered as an attack type");
             }
         }
-
+    
         _combatManager = combatManager;
 
         try {
             //                                                                                     damageArmor
-            // MM: hurtArmor, obf: b
-            _damageArmor = net.minecraft.world.entity.LivingEntity.class.getDeclaredMethod("b", DamageSource.class, float.class);
+            // MM: hurtArmor, I believe these need to be spigot mapped names
+            _damageArmor = net.minecraft.world.entity.LivingEntity.class.getDeclaredMethod("damageArmor", DamageSource.class, float.class);
             _damageArmor.setAccessible(true);
 
             //                                                                                     getSoundDeath
             // MM: getDeathSound, obf: v_
-            _deathSound = net.minecraft.world.entity.LivingEntity.class.getDeclaredMethod("v_");
+            _deathSound = net.minecraft.world.entity.LivingEntity.class.getDeclaredMethod("getSoundDeath");
             _deathSound.setAccessible(true);
 
             //                                                                                  getSoundHurt
             // MM: getHurtSound, obf: c
-            _hurtSound = net.minecraft.world.entity.LivingEntity.class.getDeclaredMethod("c", DamageSource.class);
+            _hurtSound = net.minecraft.world.entity.LivingEntity.class.getDeclaredMethod("getSoundHurt", DamageSource.class);
             _hurtSound.setAccessible(true);
         
             //                                                                               getSoundVolume
             // MM: getSoundVolume, obf: eo
-            _radius = net.minecraft.world.entity.LivingEntity.class.getDeclaredMethod("eo");
+            _radius = net.minecraft.world.entity.LivingEntity.class.getDeclaredMethod("getSoundVolume");
             _radius.setAccessible(true);
 
             //                                                                               dH
             // MM: getVoicePitch, obj: ep
-            _pitch = net.minecraft.world.entity.LivingEntity.class.getDeclaredMethod("ep");
+            _pitch = net.minecraft.world.entity.LivingEntity.class.getDeclaredMethod("dH");
             _pitch.setAccessible(true);
         } catch (Exception ex) {
             UtilError.handle(ex);
