@@ -1,6 +1,5 @@
 package me.libraryaddict.core.scoreboard;
 
-import com.google.common.base.Predicate;
 import me.libraryaddict.core.plugin.MiniPlugin;
 import me.libraryaddict.core.utils.UtilPlayer;
 import org.bukkit.entity.Player;
@@ -12,6 +11,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.HashMap;
+import java.util.function.Predicate;
 
 public class ScoreboardManager extends MiniPlugin {
     private boolean _established;
