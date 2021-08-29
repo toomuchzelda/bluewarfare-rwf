@@ -702,6 +702,40 @@ public abstract class Game implements Listener {
 				Bukkit.broadcastMessage(C.Blue + "Using < instead of <= : " + CustomDamageEvent.attackRate);
 				event.setCancelled(true);
 			}
+			else if(event.getMessage()[0].equalsIgnoreCase("kbdefault"))
+			{
+				CustomDamageEvent.kbMode = 1;
+				CustomDamageEvent.sprintCancel = true;
+				CustomDamageEvent.reduceVel = false;
+				CustomDamageEvent.velPacket = true;
+				CustomDamageEvent.attackRate = true;
+				CustomDamageEvent.useAv = true;
+				CustomDamageEvent.useImpulse = true;
+				
+				CustomDamageEvent.yVal = 0.4;
+				CustomDamageEvent.xzVal = 0.4;
+				CustomDamageEvent.yMult = 0.1;
+				CustomDamageEvent.xzMult = 1;
+				Bukkit.broadcastMessage(C.Blue + "Reset to 1.8 system");
+				event.setCancelled(true);
+			}
+			else if(event.getMessage()[0].equalsIgnoreCase("kbdefaultlib"))
+			{
+				CustomDamageEvent.kbMode = 0;
+				CustomDamageEvent.sprintCancel = false;
+				CustomDamageEvent.reduceVel = true;
+				CustomDamageEvent.velPacket = false;
+				CustomDamageEvent.attackRate = false;
+				CustomDamageEvent.useAv = false;
+				CustomDamageEvent.useImpulse = false;
+				
+				CustomDamageEvent.yVal = 0.4;
+				CustomDamageEvent.xzVal = 0.4;
+				CustomDamageEvent.yMult = 0.1;
+				CustomDamageEvent.xzMult = 1;
+				Bukkit.broadcastMessage(C.Blue + "Reset to libraryaddict's system");
+				event.setCancelled(true);
+			}
 			else if(event.getMessage()[0].toLowerCase().startsWith("kby"))
 			{
 				event.setCancelled(true);

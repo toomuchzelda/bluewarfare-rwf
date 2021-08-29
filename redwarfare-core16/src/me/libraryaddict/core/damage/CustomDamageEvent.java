@@ -46,14 +46,14 @@ public class CustomDamageEvent extends Event implements Cancellable {
 	private boolean _calculateKB;
 	
 	//for switching kb modes
-	//1 for myWay, 2 for oldWay, 0 for lib
+	//1 for 1.8, 2 for my recreation, 0 for lib.
 	public static int kbMode = 1;
 	public static boolean sprintCancel = true;
 	public static boolean reduceVel = false;
 	public static boolean velPacket = true;
 	public static boolean attackRate = true;
-	public static boolean useAv = false;
-	public static boolean useImpulse = false;
+	public static boolean useAv = true;
+	public static boolean useImpulse = true;
 	
 	public static double yVal = 0.4;
 	public static double xzVal = 0.4;
@@ -292,7 +292,7 @@ public class CustomDamageEvent extends Event implements Cancellable {
                 vec.setY(vec.getY() / 2);
                 vec.setZ(vec.getZ() / 2);
 
-                vec.add(new Vector(-(xDist / dist * 0.4), 0.4, -(zDist / dist * 0.4)));
+                vec.add(new Vector(-(xDist / dist * xzVal), yVal, -(zDist / dist * xzVal)));
 
                 toReturn.add(vec);
             }
@@ -306,9 +306,10 @@ public class CustomDamageEvent extends Event implements Cancellable {
 
             if (level != 0)
             {
+            	level *= xzMult;
                 level /= 2;
 
-                toReturn.add(new Vector(-(xDist / dist * level), 0.1, -(zDist / dist * level)));
+                toReturn.add(new Vector(-(xDist / dist * level), yMult, -(zDist / dist * level)));
             }
         }
 
