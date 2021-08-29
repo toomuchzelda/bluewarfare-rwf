@@ -82,8 +82,8 @@ public class UtilPlayer {
             Object entityTrackerEntry = ReflectionManager.getEntityTrackerEntry(entity);
 
             if (entityTrackerEntry != null) {
-                //                                                                        EntityTrackerEntry
-                Set<?> trackedPlayers = (Set<?>) ReflectionManager.getNmsField("ServerEntity", "trackedPlayers")
+                //                                                                        MM: ServerEntity
+                Set<?> trackedPlayers = (Set<?>) ReflectionManager.getNmsField("EntityTrackerEntry", "trackedPlayers")
                         .get(entityTrackerEntry);
                 trackedPlayers = (Set<?>) new HashSet<>(trackedPlayers).clone(); // Copy before iterating to prevent
                 // ConcurrentModificationException
