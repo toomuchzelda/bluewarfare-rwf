@@ -96,7 +96,7 @@ public class DamageManager extends MiniPlugin {
 
             //                                                                               dH
             // MM: getVoicePitch, obj: ep
-            _pitch = net.minecraft.world.entity.LivingEntity.class.getDeclaredMethod("dH");
+            _pitch = net.minecraft.world.entity.LivingEntity.class.getDeclaredMethod("ep");
             _pitch.setAccessible(true);
         } catch (Exception ex) {
             UtilError.handle(ex);
@@ -591,10 +591,6 @@ public class DamageManager extends MiniPlugin {
                         && !canAttemptHit(damager, (LivingEntity) event.getEntity())) {
                     return;
                 }
-                else
-                {
-                	 ((Player) damager).sendMessage("ndt: " + ((LivingEntity) event.getEntity()).getNoDamageTicks());
-                }
             }
         }
 
@@ -656,7 +652,7 @@ public class DamageManager extends MiniPlugin {
         	int tick = UtilTime.currentTick - entry.getValue();
         	
         	//just cover every case except if its >= 200
-        	if(!(tick < 200))
+        	if((tick > 200))
         	{
         		itel2.remove();
         	}
