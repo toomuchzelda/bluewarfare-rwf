@@ -9,6 +9,7 @@ import me.libraryaddict.core.recharge.Recharge;
 import me.libraryaddict.disguise.utilities.reflection.ReflectionManager;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.server.network.ServerPlayerConnection;
 import net.minecraft.world.food.FoodData;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -88,9 +89,27 @@ public class UtilPlayer {
                 trackedPlayers = (Set<?>) new HashSet<>(trackedPlayers).clone(); // Copy before iterating to prevent
                 // ConcurrentModificationException
                 for (Object p : trackedPlayers) {
-                    Player player = (Player) ReflectionManager.getBukkitEntity(p);
-
+                    //causes class cast exception as of libs disguises 10.0.26
+                    //Player player = (Player) ReflectionManager.getBukkitEntity(p);
+                    ServerPlayerConnection playerCon = (ServerPlayerConnection) p;
+                    Player player = playerCon.getPlayer().getBukkitEntity();
+    
                     perverts.add(player);
+                    /*
+                    if(p instanceof net.minecraft.world.entity.Entity)
+                    {
+                        Bukkit.broadcastMessage("p is Entity, getting bukkit entity now...");
+                        Player player = (Player) ((net.minecraft.world.entity.Entity) p).getBukkitEntity();
+    
+                        perverts.add(player);
+                    }
+                    else
+                    {
+                        Bukkit.broadcastMessage("not instanceof Entity, trying getPlayer");
+                        
+                        Bukkit.broadcastMessage("added after typecasting");
+                    }
+                     */
                 }
             }
 
