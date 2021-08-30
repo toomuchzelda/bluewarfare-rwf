@@ -439,7 +439,8 @@ public class UtilBlock {
 
     // "partially solid" seems to refer to blocks that players (sometimes) cannot stand on
     public static boolean partiallySolid(Block block) {
-        return !block.isSolid();
+        //return !block.isSolid();
+    	return block.getBlockData().getMaterial().isSolid();
     }
 
     public static boolean partiallySolid(Material material) {
@@ -467,7 +468,8 @@ public class UtilBlock {
 
     // "solid" seems to refer to blocks that are a full cube
     public static boolean solid(Block block) {
-        return block.isSolid();
+        //return block.isSolid();
+    	return block.getBlockData().getMaterial().isSolid();
     }
 
     public static boolean solid(Material material) {
@@ -477,7 +479,7 @@ public class UtilBlock {
     // "spawnable" seems to refer to blocks that are both solid and an occluding block
     // e.g. glass is solid but not spawnable
     public static boolean spawnable(Block block) {
-        return block.isSolid() && block.getType().isOccluding();
+        return /*block.isSolid()*/ block.getBlockData().getMaterial().isSolid() && block.getType().isOccluding();
     }
 
     public static boolean spawnable(Material mat) {
