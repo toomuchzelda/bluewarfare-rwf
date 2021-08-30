@@ -7,6 +7,8 @@ import com.comphenix.protocol.reflect.StructureModifier;
 import com.comphenix.protocol.wrappers.WrappedChatComponent;
 import com.comphenix.protocol.wrappers.WrappedDataWatcher;
 import com.comphenix.protocol.wrappers.WrappedDataWatcher.Registry;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
 import me.libraryaddict.core.hologram.HologramInteract.InteractType;
 import me.libraryaddict.core.utils.UtilEnt;
 import me.libraryaddict.core.utils.UtilPlayer;
@@ -475,7 +477,9 @@ public class Hologram {
 //            ids[ids.length - 1] = _entityIds.get(i);
 //        }
 
-        _destroyPacket.getIntegerArrays().write(0, ids);
+        IntList intlist = new IntArrayList(ids);
+        //_destroyPacket.getIntegerArrays().write(0, ids);
+        _destroyPacket.getModifier().write(0, intlist);
     }
 
     private void makeSpawnPackets() {
