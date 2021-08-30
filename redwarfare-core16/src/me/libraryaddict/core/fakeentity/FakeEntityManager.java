@@ -7,6 +7,7 @@ import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.wrappers.EnumWrappers.EntityUseAction;
 import com.comphenix.protocol.wrappers.EnumWrappers.Hand;
+import com.destroystokyo.paper.event.player.PlayerUseUnknownEntityEvent;
 import me.libraryaddict.core.fakeentity.EntityInteract.InteractType;
 import me.libraryaddict.core.plugin.MiniPlugin;
 import me.libraryaddict.core.time.TimeEvent;
@@ -18,6 +19,7 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -34,6 +36,7 @@ public class FakeEntityManager extends MiniPlugin {
 
         fakeEntity = this;
 
+        /*
         ProtocolLibrary.getProtocolManager().addPacketListener(new PacketAdapter(plugin, PacketType.Play.Client.USE_ENTITY) {
             @Override
             public void onPacketReceiving(PacketEvent event) {
@@ -61,6 +64,7 @@ public class FakeEntityManager extends MiniPlugin {
                 }.runTask(getPlugin());
             }
         });
+         */
 
     }
 
@@ -68,6 +72,37 @@ public class FakeEntityManager extends MiniPlugin {
         _activeFakeEntities.add(hologram);
     }
 
+    //thank god i'm using paper and this event exists
+    @EventHandler
+    public void onUseFakeEntity(PlayerUseUnknownEntityEvent event)
+    {
+        Player player = event.getPlayer();
+    
+        //PacketContainer packet = event.getPacket();
+    
+        int id = event.getEntityId();
+    
+        /*
+        InteractType interactType = packet.getEntityUseActions().read(0) == EntityUseAction.ATTACK
+                ? InteractType.ATTACK
+                : packet.getHands().read(0) == Hand.MAIN_HAND ? InteractType.MAIN_INTERACT
+              : InteractType.OFFHAND_INTERACT;
+         */
+        
+        InteractType interactType;
+        if(event.isAttack())
+            interactType = InteractType.ATTACK;
+        else if(event.getHand() == EquipmentSlot.HAND)
+            interactType = InteractType.MAIN_INTERACT;
+        else
+            interactType = InteractType.OFFHAND_INTERACT;
+    
+        for (FakeEntity fakeEntities : new ArrayList<FakeEntity>(_activeFakeEntities)) {
+            fakeEntities.onInteract(player, id, interactType);
+        }
+    }
+    
+    
     @EventHandler(priority = EventPriority.LOWEST)
     public void onTick(TimeEvent event) {
         if (event.getType() != TimeType.TICK || _activeFakeEntities.isEmpty())
