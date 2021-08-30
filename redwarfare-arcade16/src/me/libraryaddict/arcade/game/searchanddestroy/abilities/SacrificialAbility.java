@@ -20,7 +20,7 @@ import me.libraryaddict.core.time.TimeType;
 import me.libraryaddict.core.utils.*;
 import me.libraryaddict.core.utils.UtilParticle.ViewDist;
 import org.bukkit.*;
-import org.bukkit.craftbukkit.v1_16_R3.entity.CraftLivingEntity;
+import org.bukkit.craftbukkit.v1_17_R1.entity.CraftLivingEntity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event.Result;
@@ -126,8 +126,8 @@ public class SacrificialAbility extends Ability {
         dmgd.setLastDamage(event.getInitialDamage());
 
         // aw used to be aH
-        ((CraftLivingEntity) dmgd).getHandle().aw = 1.5F;
-        ((CraftLivingEntity) dmgd).getHandle().hurtTicks = 10;
+        ((CraftLivingEntity) dmgd).getHandle().animationPosition = 1.5F;
+        ((CraftLivingEntity) dmgd).getHandle().hurtTime = 10;
 
         getManager().getDamage().playDamage(dmgd);
 

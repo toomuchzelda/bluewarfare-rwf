@@ -10,10 +10,13 @@ import me.libraryaddict.core.time.TimeEvent;
 import me.libraryaddict.core.time.TimeType;
 import me.libraryaddict.core.utils.UtilError;
 import me.libraryaddict.core.utils.UtilMath;
-import net.minecraft.server.v1_16_R3.*;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.ai.goal.*;
+import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
+import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.craftbukkit.v1_16_R3.entity.CraftIronGolem;
+import org.bukkit.craftbukkit.v1_17_R1.entity.CraftIronGolem;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.IronGolem;
@@ -31,13 +34,14 @@ import java.util.LinkedHashSet;
 import java.util.Map.Entry;
 
 public class IronGolemKillstreak extends StreakBase {
-    private HashMap<Entity, PathfinderGoalMeleeAttack> _melee = new HashMap<Entity, PathfinderGoalMeleeAttack>();
+    private HashMap<Entity, MeleeAttackGoal> _melee = new HashMap<Entity, MeleeAttackGoal>();
     private Field _timer;
 
     public IronGolemKillstreak(SearchAndDestroy manager) {
         super(manager, "iron golem");
         try {
-            _timer = PathfinderGoalMeleeAttack.class.getDeclaredField("c");
+            //                                                  followingTargetEvenIfNotSeen
+            _timer = MeleeAttackGoal.class.getDeclaredField("c");
             _timer.setAccessible(true);
         } catch (Exception ex) {
             UtilError.handle(ex);
@@ -80,7 +84,7 @@ public class IronGolemKillstreak extends StreakBase {
                 }
 
                 try {
-                    PathfinderGoalMeleeAttack goal = _melee.get(entity);
+                    MeleeAttackGoal goal = _melee.get(entity);
 
                     _timer.set(goal, 30);
                 } catch (Exception ex) {
@@ -117,23 +121,23 @@ public class IronGolemKillstreak extends StreakBase {
         ironGolem.setCustomName(team.getColoring() + player.getName() + "'s Iron Golem");
         ironGolem.setCustomNameVisible(true);
 
-        EntityIronGolem golem = ((CraftIronGolem) ironGolem).getHandle();
+        net.minecraft.world.entity.animal.IronGolem golem = ((CraftIronGolem) ironGolem).getHandle();
 
         try {
-            Field goalSelector = EntityInsentient.class.getDeclaredField("goalSelector");
+            Field goalSelector = Mob.class.getDeclaredField("goalSelector");
             goalSelector.setAccessible(true);
 
-            Field targetSelector = EntityInsentient.class.getDeclaredField("targetSelector");
+            Field targetSelector = Mob.class.getDeclaredField("targetSelector");
             targetSelector.setAccessible(true);
 
-            Field b = PathfinderGoalSelector.class.getDeclaredField("b");
+            Field b = GoalSelector.class.getDeclaredField("NO_GOAL");
             b.setAccessible(true);
 
-            Field c = PathfinderGoalSelector.class.getDeclaredField("c");
+            Field c = GoalSelector.class.getDeclaredField("lockedFlags");
             c.setAccessible(true);
 
-            PathfinderGoalSelector goal = (PathfinderGoalSelector) goalSelector.get(golem);
-            PathfinderGoalSelector target = (PathfinderGoalSelector) targetSelector.get(golem);
+            GoalSelector goal = (GoalSelector) goalSelector.get(golem);
+            GoalSelector target = (GoalSelector) targetSelector.get(golem);
             PathfinderSelector selector = new PathfinderSelector(_manager, team);
 
             ((LinkedHashSet) b.get(goal)).clear();
@@ -141,24 +145,26 @@ public class IronGolemKillstreak extends StreakBase {
             ((LinkedHashSet) b.get(target)).clear();
             ((LinkedHashSet) c.get(target)).clear();
 
-            PathfinderGoalMeleeAttack melee = new PathfinderGoalMeleeAttack(golem, 1.0D, false);
-            // melee[1] = new PathfinderGoalMeleeAttack(golem, 1.0D, true);
+            MeleeAttackGoal melee = new MeleeAttackGoal(golem, 1.0D, false);
+            // melee[1] = new MeleeAttackGoal(golem, 1.0D, true);
 
             _melee.put(ironGolem, melee);
 
-            goal.a(0, new PathfinderGoalFloat(golem));
-            goal.a(2, melee);
-            goal.a(5, new PathfinderGoalMoveTowardsRestriction(golem, 1.0D));
+            goal.addGoal(0, new FloatGoal(golem));
+            goal.addGoal(2, melee);
+            goal.addGoal(5, new MoveTowardsRestrictionGoal(golem, 1.0D));
             //goal.a(6, new PathfinderGoalMoveThroughVillage(golem, 1.0D, false));
-            goal.a(6, new PathfinderGoalMoveThroughVillage(golem, 1.0D, false, 0, null));
-            goal.a(7, new PathfinderGoalRandomStroll(golem, 1.0D));
-            goal.a(8, new PathfinderGoalLookAtPlayer(golem, EntityHuman.class, 8.0F));
-            goal.a(8, new PathfinderGoalRandomLookaround(golem));
+            goal.addGoal(6, new MoveThroughVillageGoal(golem, 1.0D, false, 0, null));
+            goal.addGoal(7, new RandomStrollGoal(golem, 1.0D));
+            goal.addGoal(8, new LookAtPlayerGoal(golem, net.minecraft.world.entity.player.Player.class, 8.0F));
+            goal.addGoal(8, new RandomLookAroundGoal(golem));
 
             //target.a(1, new PathfinderGoalHurtByTarget(golem, true));
-            target.a(1, new PathfinderGoalHurtByTarget(golem));
-            target.a(2, new PathfinderGoalNearestAttackableTarget(golem, EntityHuman.class, 0, true, false, selector));
-            target.a(2, new PathfinderGoalNearestAttackableTarget(golem, EntityInsentient.class, 0, false, false, selector));
+            target.addGoal(1, new HurtByTargetGoal(golem));
+            target.addGoal(2, new NearestAttackableTargetGoal(golem,
+                    net.minecraft.world.entity.player.Player.class, 0, true, false, selector));
+            target.addGoal(2, new NearestAttackableTargetGoal(golem,
+                    Mob.class, 0, false, false, selector));
         } catch (Exception ex) {
             UtilError.handle(ex);
         }
@@ -170,10 +176,10 @@ public class IronGolemKillstreak extends StreakBase {
             return;
         }
 
-        Iterator<Entry<Entity, PathfinderGoalMeleeAttack>> itel = _melee.entrySet().iterator();
+        Iterator<Entry<Entity, MeleeAttackGoal>> itel = _melee.entrySet().iterator();
 
         while (itel.hasNext()) {
-            Entry<Entity, PathfinderGoalMeleeAttack> entry = itel.next();
+            Entry<Entity, MeleeAttackGoal> entry = itel.next();
 
             Entity entity = entry.getKey();
 

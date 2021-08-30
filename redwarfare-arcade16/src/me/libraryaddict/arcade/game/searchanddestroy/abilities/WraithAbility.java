@@ -9,14 +9,14 @@ import me.libraryaddict.core.time.TimeEvent;
 import me.libraryaddict.core.time.TimeType;
 import me.libraryaddict.core.utils.*;
 import me.libraryaddict.core.utils.UtilParticle.ViewDist;
-import net.minecraft.server.v1_16_R3.EntityPlayer;
-import net.minecraft.server.v1_16_R3.EnumAnimation;
-import net.minecraft.server.v1_16_R3.Item;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.UseAnim;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.craftbukkit.v1_16_R3.entity.CraftArrow;
-import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_17_R1.entity.CraftArrow;
+import org.bukkit.craftbukkit.v1_17_R1.entity.CraftPlayer;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -40,14 +40,14 @@ public class WraithAbility extends Ability {
      * @return
      */
     private boolean isInvis(Player player) {
-        EntityPlayer p = ((CraftPlayer) player).getHandle();
+        ServerPlayer p = ((CraftPlayer) player).getHandle();
 
-        if (!p.isHandRaised() || p.getActiveItem() == null || !UtilInv.isHolding(player, EquipmentSlot.HAND, Material.BOW))
+        if (!p.isUsingItem() || p.getUseItem() == null || !UtilInv.isHolding(player, EquipmentSlot.HAND, Material.BOW))
             return true;
 
-        Item item = p.getItemInMainHand().getItem();
+        Item item = p.getMainHandItem().getItem();
 
-        return item.d_(p.getActiveItem()) != EnumAnimation.BOW;
+        return item.getUseAnimation(p.getUseItem()) != UseAnim.BOW;
         // return item.f(p.cA()) != EnumAnimation.BOW ? false : item.e(p.cA()) - p.cB() >= 5;
     }
 

@@ -14,7 +14,8 @@ public class MiniPlugin implements Listener {
 
         Bukkit.getPluginManager().registerEvents(this, _plugin);
 
-        System.out.print("Enabling: " + _name);
+        //System.out.print("Enabling: " + _name);
+        getPlugin().getLogger().info("Enabling " + _name);
     }
 
     public final JavaPlugin getPlugin() {

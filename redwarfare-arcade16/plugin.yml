@@ -3,4 +3,4 @@ main: me.libraryaddict.arcade.Arcade
 version: 1
 depend: [ ProtocolLib, LibsDisguises ]
 load: startup
-api-version: 1.16
+api-version: 1.17

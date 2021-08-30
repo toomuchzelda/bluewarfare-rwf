@@ -5,7 +5,7 @@ import me.libraryaddict.core.command.SimpleCommand;
 import me.libraryaddict.core.rank.Rank;
 import me.libraryaddict.core.ranks.PlayerRank;
 import me.libraryaddict.core.utils.UtilPlayer;
-import net.minecraft.server.v1_16_R3.MinecraftServer;
+import net.minecraft.server.MinecraftServer;
 import org.bukkit.entity.Player;
 import org.eclipse.egit.github.core.Gist;
 import org.eclipse.egit.github.core.GistFile;
@@ -60,8 +60,9 @@ public class CommandThreads extends SimpleCommand {
 
             string.append("Server thread dump (Look for plugins here before reporting to Spigot!):\n");
             dumpThread(ManagementFactory.getThreadMXBean().getThreadInfo(
-                    //MinecraftServer.getServer().primaryThread.getId(),
-                    MinecraftServer.getServer().getThread().getId(),
+                    //MinecraftServer.getServer().primaryThread.getId(), :: 1.12
+                    //MinecraftServer.getServer().getThread().getId(), :: 1.16.5
+                    MinecraftServer.getServer().getRunningThread().getId(),
                     Integer.MAX_VALUE), string);
             string.append("------------------------------\n");
             //

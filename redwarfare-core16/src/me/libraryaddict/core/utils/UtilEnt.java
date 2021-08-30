@@ -22,6 +22,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -65,7 +66,7 @@ public class UtilEnt {
         }
         return null;
     }
-
+    
     public static PacketContainer getEquipmentPacket(Entity entity, List<Pair<EquipmentSlot, ItemStack>> list) {
         return getEquipmentPacket(entity.getEntityId(), list);
     }
@@ -87,10 +88,15 @@ public class UtilEnt {
     public static PacketContainer getEquipmentPacket(int entityId, EquipmentSlot slot, ItemStack stack) {
         PacketContainer container = ProtocolLibrary.getProtocolManager().createPacket(PacketType.Play.Server.ENTITY_EQUIPMENT);
         container.getIntegers().write(0, entityId);
-        container.getSlotStackPairLists().write(0,
-                Collections.singletonList(new com.comphenix.protocol.wrappers.Pair<>(getOtherEnum(slot), stack))
-        );
-
+        //protocollib throwing exception trying to use non-existent empty constructor for SingletonList
+        //container.getSlotStackPairLists().write(0,
+        //        Collections.singletonList(new com.comphenix.protocol.wrappers.Pair<>(getOtherEnum(slot), stack))
+        //);
+    
+        ArrayList<com.comphenix.protocol.wrappers.Pair<EnumWrappers.ItemSlot, ItemStack>> list = new ArrayList();
+        list.add(new com.comphenix.protocol.wrappers.Pair<>(getOtherEnum(slot), stack));
+        container.getSlotStackPairLists().write(0, list);
+        
         return container;
     }
 

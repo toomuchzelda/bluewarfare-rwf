@@ -23,7 +23,8 @@ public class MysqlFetchReferals extends DatabaseOperation {
     public MysqlFetchReferals(UUID referer, UUID refered, String referedName, Boolean completed) {
         try (Connection con = getMysql()) {
             System.out.println(getStatement(referer, refered, referedName, completed));
-            PreparedStatement stmt = con.prepareStatement(getStatement(referer, refered, referedName, completed));
+            PreparedStatement stmt = con.prepareStatement(getStatement(referer, refered, referedName, completed),
+                    ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
 
             int i = 1;
 

@@ -64,8 +64,8 @@ public class BleederAbility2 extends Ability {
     /**
      * This method tries to bleed the enemy after being hit
      *
-     * @param player
-     * @param rightClicked
+     * @param damager
+     * @param damagee
      */
     public void bleed(Entity damager, Entity damagee) {
 

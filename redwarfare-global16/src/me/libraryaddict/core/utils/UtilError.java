@@ -1,6 +1,7 @@
 package me.libraryaddict.core.utils;
 
 import me.libraryaddict.core.C;
+import me.libraryaddict.mysql.MysqlManager;
 import me.libraryaddict.mysql.operations.MysqlSaveError;
 
 import java.io.ByteArrayOutputStream;
@@ -57,7 +58,15 @@ public class UtilError {
                         if (errors > 100)
                             continue;
 
-                        new MysqlSaveError(_server, error);
+                        //slightly hacky, to prevent a recursive error saving loop where an error
+                        // save operation fails -> causes another error -> tries to save error ->
+                        // fails again and so on
+                        //won't prevent all recursive errors, just this one i'm having where an error
+                        // occurs before the mysqlmanager inits
+                        if(MysqlManager.isInit())
+                        {
+                            new MysqlSaveError(_server, error);
+                        }
                     }
                 }
             }.start();

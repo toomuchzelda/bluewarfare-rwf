@@ -40,15 +40,22 @@ import me.libraryaddict.core.vote.VoteManager;
 import me.libraryaddict.mysql.MysqlManager;
 import me.libraryaddict.redis.RedisManager;
 import net.md_5.bungee.api.ChatColor;
-import net.minecraft.server.v1_16_R3.*;
+import net.minecraft.Util;
+import net.minecraft.server.dedicated.DedicatedServer;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.level.GameType;
 import org.bukkit.Bukkit;
 import org.bukkit.Difficulty;
 import org.bukkit.World;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.craftbukkit.v1_16_R3.CraftServer;
-import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
+import org.bukkit.craftbukkit.libs.it.unimi.dsi.fastutil.ints.IntArrayList;
+import org.bukkit.craftbukkit.libs.it.unimi.dsi.fastutil.ints.IntList;
+import org.bukkit.craftbukkit.v1_17_R1.CraftServer;
+import org.bukkit.craftbukkit.v1_17_R1.CraftWorld;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.entity.EntityRegainHealthEvent;
@@ -157,7 +164,7 @@ public abstract class CentralManager extends MiniPlugin {
 
         //supposed to set server properties allow nether to false?? and then save it. couldnt find replacement method
         //dk what this does
-        server.getAllowNether();
+        //server.getAllowNether();
 
         try {
             YamlConfiguration config = YamlConfiguration.loadConfiguration(new File("bukkit.yml"));
@@ -175,14 +182,14 @@ public abstract class CentralManager extends MiniPlugin {
                 .addPacketListener(new PacketAdapter(plugin, PacketType.Play.Server.NAMED_SOUND_EFFECT) {
                     @Override
                     public void onPacketSending(PacketEvent event) {
-                        SoundEffect effect = (SoundEffect) event.getPacket().getModifier().read(0);
-                        if (effect.equals(SoundEffects.ENTITY_PLAYER_ATTACK_CRIT) ||
-                                effect.equals(SoundEffects.ENTITY_PLAYER_ATTACK_KNOCKBACK) ||
-                                effect.equals(SoundEffects.ENTITY_PLAYER_ATTACK_NODAMAGE) ||
-                                effect.equals(SoundEffects.ENTITY_PLAYER_ATTACK_STRONG) ||
-                                effect.equals(SoundEffects.ENTITY_PLAYER_ATTACK_SWEEP) ||
-                                effect.equals(SoundEffects.ENTITY_PLAYER_ATTACK_WEAK) ||
-                                effect.equals(SoundEffects.ITEM_ARMOR_EQUIP_GENERIC)) {
+                        SoundEvent effect = (SoundEvent) event.getPacket().getModifier().read(0);
+                        if (effect.equals(SoundEvents.PLAYER_ATTACK_CRIT) ||
+                                effect.equals(SoundEvents.PLAYER_ATTACK_KNOCKBACK) ||
+                                effect.equals(SoundEvents.PLAYER_ATTACK_NODAMAGE) ||
+                                effect.equals(SoundEvents.PLAYER_ATTACK_STRONG) ||
+                                effect.equals(SoundEvents.PLAYER_ATTACK_SWEEP) ||
+                                effect.equals(SoundEvents.PLAYER_ATTACK_WEAK) ||
+                                effect.equals(SoundEvents.ARMOR_EQUIP_GENERIC)) {
                             event.setCancelled(true);
                         }
 
@@ -293,7 +300,9 @@ public abstract class CentralManager extends MiniPlugin {
                         if (_disabledFakePlayers)
                             return;
 
-                        int[] entityIds = event.getPacket().getIntegerArrays().read(0);
+                        //intlists stupid
+                        IntList cringe = (IntList) event.getPacket().getModifier().read(0);
+                        int[] entityIds = cringe.toIntArray();
                         int length = entityIds.length;
 
                         for (int i = 0; i < length; i++) {
@@ -308,8 +317,10 @@ public abstract class CentralManager extends MiniPlugin {
                                 entityIds[(entityIds.length - 4) + b] = ids[b];
                             }
                         }
-
-                        event.getPacket().getIntegerArrays().write(0, entityIds);
+                        
+                        cringe = new IntArrayList(entityIds);
+                        event.getPacket().getModifier().write(0, cringe);
+                        //event.getPacket().getIntegerArrays().write(0, entityIds);
                     }
                 });
     }
@@ -388,7 +399,10 @@ public abstract class CentralManager extends MiniPlugin {
             array = new int[0];
         }
 
-        delete.getIntegerArrays().write(0, array);
+        //delete.getIntegerArrays().write(0, array);
+        //what the fuck is an IntList and why use it over an array
+        IntList intlist = new IntArrayList(array);
+        delete.getModifier().write(0, intlist);
 
         return delete;
     }
@@ -653,7 +667,8 @@ public abstract class CentralManager extends MiniPlugin {
 
         world.setGameRuleValue("showDeathMessages", "false");
 
-        WorldServer nmsWorld = ((CraftWorld) world).getHandle();
+        //WorldServer nmsWorld = ((CraftWorld) world).getHandle();
+        ServerLevel nmsWorld = ((CraftWorld) world).getHandle();
 
         SpigotWorldConfig config = nmsWorld.spigotConfig;
 
@@ -661,13 +676,16 @@ public abstract class CentralManager extends MiniPlugin {
         config.jumpSprintExhaustion = 0.3F;
         config.combatExhaustion = 0.3F;
         config.regenExhaustion = 0.6F;
-
-        EnumGamemode mode = EnumGamemode.getById(UtilPlayer.getDefaultGamemode().getValue());
-
+    
+        /*
+        //EnumGamemode mode = EnumGamemode.getById(UtilPlayer.getDefaultGamemode().getValue());
+        GameType mode = GameType.byId(UtilPlayer.getDefaultGamemode().getValue());
+        
         if (mode == null) {
             Thread.dumpStack();
             return;
         }
+         */
 
         //nmsWorld.getWorldData().setGameType(mode);
     }
@@ -704,4 +722,6 @@ public abstract class CentralManager extends MiniPlugin {
 
         _disabledFakePlayers = disablePlayers;
     }
+    
+    
 }

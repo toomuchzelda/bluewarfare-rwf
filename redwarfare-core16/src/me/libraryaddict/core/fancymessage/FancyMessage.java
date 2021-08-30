@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
  * <a href="http://minecraft.gamepedia.com/Commands#tellraw">tellraw command</a>.
  * <p>
  * This class follows the builder pattern, allowing for method chaining. It is set up such that invocations of property-setting
- * methods will affect the current editing component, and a call to {@link #then()} or {@link #then(Object)} will append a new
+ * methods will affect the current editing component, and a call to {@link #then()} or {@link #(Object)} will append a new
  * editing component to the end of the message, optionally initializing it with text. Further property-setting method calls will
  * affect that editing component.
  * </p>

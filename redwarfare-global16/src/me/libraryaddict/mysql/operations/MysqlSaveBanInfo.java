@@ -17,7 +17,8 @@ public class MysqlSaveBanInfo extends DatabaseOperation {
             con = getMysql();
 
             PreparedStatement stmt = con.prepareStatement(
-                    "SELECT * FROM bans WHERE banned = ? AND banned_by = ? AND reason = ? AND banned_when = ? AND ban_expires = ? AND type = ?");
+                    "SELECT * FROM bans WHERE banned = ? AND banned_by = ? AND reason = ? AND banned_when = ? AND ban_expires = ? AND type = ?",
+                    ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
 
             stmt.setString(1, banInfo.getBanned());
             stmt.setInt(2, KeyMappings.getKey(banInfo.getBanner()));

@@ -17,7 +17,8 @@ public class MysqlLoadPlayerData extends DatabaseOperation {
     public MysqlLoadPlayerData(UUID uuid) {
         try (Connection con = getMysql()) {
             PreparedStatement stmt = con
-                    .prepareStatement("SELECT * FROM playerinfo WHERE type = ? AND uuid = ? ORDER BY last_used DESC");
+                    .prepareStatement("SELECT * FROM playerinfo WHERE type = ? AND uuid = ? ORDER BY last_used DESC",
+                            ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
 
             stmt.setInt(1, KeyMappings.getKey("Name"));
             stmt.setString(2, uuid.toString());

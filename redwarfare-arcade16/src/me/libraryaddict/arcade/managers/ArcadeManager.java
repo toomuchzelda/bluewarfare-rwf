@@ -24,7 +24,7 @@ public class ArcadeManager extends CentralManager {
         super(arcade);
         
         //disable/enable fake/extended hitboxes
-        super.setFakePlayersDisabled(false);
+        super.setFakePlayersDisabled(true);
 
         _deathManager = new DeathManager(arcade, this);
         _gameManager = new GameManager(arcade, this);

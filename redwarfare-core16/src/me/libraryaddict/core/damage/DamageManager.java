@@ -10,6 +10,7 @@ import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.events.PacketListener;
 import com.comphenix.protocol.reflect.StructureModifier;
 import me.libraryaddict.core.C;
+import me.libraryaddict.core.CentralManager;
 import me.libraryaddict.core.Pair;
 import me.libraryaddict.core.combat.CombatEvent;
 import me.libraryaddict.core.combat.CombatManager;
@@ -19,16 +20,17 @@ import me.libraryaddict.core.plugin.MiniPlugin;
 import me.libraryaddict.core.time.TimeEvent;
 import me.libraryaddict.core.time.TimeType;
 import me.libraryaddict.core.utils.*;
-import net.minecraft.server.v1_16_R3.*;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.phys.Vec3;
 import org.bukkit.Bukkit;
 import org.bukkit.EntityEffect;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.block.BlockFace;
-import org.bukkit.craftbukkit.v1_16_R3.entity.CraftEntity;
-import org.bukkit.craftbukkit.v1_16_R3.entity.CraftLivingEntity;
-import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
-import org.bukkit.craftbukkit.v1_16_R3.util.CraftVector;
+import org.bukkit.craftbukkit.v1_17_R1.entity.CraftEntity;
+import org.bukkit.craftbukkit.v1_17_R1.entity.CraftLivingEntity;
+import org.bukkit.craftbukkit.v1_17_R1.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
@@ -68,27 +70,38 @@ public class DamageManager extends MiniPlugin {
             AttackType attack = AttackType.getAttack(cause);
 
             if (attack == null || attack == AttackType.UNKNOWN) {
-                System.err.print("The DamageCause '" + cause.name() + "' has not been registered as an attack type");
+                //System.err.print("The DamageCause '" + cause.name() + "' has not been registered as an attack type");
+                getPlugin().getLogger().warning("The DamageCause '" + cause.name() +
+                        "' has not been registered as an attack type");
             }
         }
-
+    
         _combatManager = combatManager;
 
         try {
-            _damageArmor = EntityLiving.class.getDeclaredMethod("damageArmor", DamageSource.class, float.class);
+            //                                                                                     damageArmor
+            // MM: hurtArmor, I believe these need to be spigot mapped names
+            _damageArmor = net.minecraft.world.entity.LivingEntity.class.getDeclaredMethod("damageArmor", DamageSource.class, float.class);
             _damageArmor.setAccessible(true);
 
-
-            _deathSound = EntityLiving.class.getDeclaredMethod("getSoundDeath");
+            //                                                                                     getSoundDeath
+            // MM: getDeathSound, obf: v_
+            _deathSound = net.minecraft.world.entity.LivingEntity.class.getDeclaredMethod("getSoundDeath");
             _deathSound.setAccessible(true);
 
-            _hurtSound = EntityLiving.class.getDeclaredMethod("getSoundHurt", DamageSource.class);
+            //                                                                                  getSoundHurt
+            // MM: getHurtSound, obf: c
+            _hurtSound = net.minecraft.world.entity.LivingEntity.class.getDeclaredMethod("getSoundHurt", DamageSource.class);
             _hurtSound.setAccessible(true);
-
-            _radius = EntityLiving.class.getDeclaredMethod("getSoundVolume");
+        
+            //                                                                               getSoundVolume
+            // MM: getSoundVolume, obf: eo
+            _radius = net.minecraft.world.entity.LivingEntity.class.getDeclaredMethod("getSoundVolume");
             _radius.setAccessible(true);
 
-            _pitch = EntityLiving.class.getDeclaredMethod("dH");
+            //                                                                               dH
+            // MM: getVoicePitch, obj: ep
+            _pitch = net.minecraft.world.entity.LivingEntity.class.getDeclaredMethod("ep");
             _pitch.setAccessible(true);
         } catch (Exception ex) {
             UtilError.handle(ex);
@@ -312,13 +325,12 @@ public class DamageManager extends MiniPlugin {
             } else if (event.isLivingDamagee() && !doDeath) {
                 LivingEntity living = event.getLivingDamagee();
 
-                EntityLiving nms = ((CraftLivingEntity) living).getHandle();
-                
-                if(CustomDamageEvent.useAv)
-                	nms.av = 1.5f;
+                net.minecraft.world.entity.LivingEntity nms = ((CraftLivingEntity) living).getHandle();
+                //  av
+                if(CustomDamageEvent.usAv)
+                  nms.animationSpeed = 1.5F;
                 else
-                	nms.aw = 1.5f;
-                
+                  nms.animationPosition = 1.5f;
 
                 if (!event.isIgnoreRate() && living.getNoDamageTicks() > living.getMaximumNoDamageTicks() / 2.0F) {
                     damageEntity(living, damage - living.getLastDamage(), false);
@@ -326,7 +338,8 @@ public class DamageManager extends MiniPlugin {
                     damageEntity(living, damage, true);
 
                     living.setNoDamageTicks(living.getMaximumNoDamageTicks());
-                    nms.hurtTicks = 10;
+                    //nms.hurtTicks = 10;
+                    nms.hurtTime = 10;
                 }
 
                 living.setLastDamage(damage);
@@ -456,18 +469,19 @@ public class DamageManager extends MiniPlugin {
                 event.addRunnable(new DamageRunnable("Sprinting") {
                     @Override
                     public void run(CustomDamageEvent event2) {
+
                     	//Bukkit method sends attribute packet which halts sprinting
                         //((Player) cause).setSprinting(false);
-                        EntityPlayer player = ((CraftPlayer) cause).getHandle();
+                        net.minecraft.server.level.ServerPlayer player = ((CraftPlayer) cause).getHandle();
                         if(CustomDamageEvent.sprintCancel)
                         	player.setFlag(3, false);
                         else
                         	((Player) cause).setSprinting(false);
 
-                        Vec3D currentMot = player.getMot();
+                        Vec3 currentMot = player.getDeltaMovement();
                         //player.motX *= 0.6;
                         //player.motZ *= 0.6;
-                        player.setMot(currentMot.getX() * 0.6, currentMot.getY(), currentMot.getZ() * 0.6);
+                        player.setDeltaMovement(currentMot.x() * 0.6, currentMot.y(), currentMot.z() * 0.6);
                     }
                 });
             }
@@ -670,10 +684,6 @@ public class DamageManager extends MiniPlugin {
                         && !canAttemptHit(damager, (LivingEntity) event.getEntity())) {
                     return;
                 }
-                //else
-                //{
-                //	 ((Player) damager).sendMessage("ndt: " + ((LivingEntity) event.getEntity()).getNoDamageTicks());
-                //}
             }
         }
 
@@ -742,7 +752,7 @@ public class DamageManager extends MiniPlugin {
         	int tick = UtilTime.currentTick - entry.getValue();
         	
         	//just cover every case except if its >= 200
-        	if(tick >= 200)
+        	if((tick > 200))
         	{
         		itel2.remove();
         	}
@@ -779,15 +789,15 @@ public class DamageManager extends MiniPlugin {
         // I think bukkit can handle death sounds itself
         // TODO check
         // the above replaces the following:
-        EntityLiving nms = ((CraftLivingEntity) entity).getHandle();
+        net.minecraft.world.entity.LivingEntity nms = ((CraftLivingEntity) entity).getHandle();
 
 
         try {
-            SoundEffect effect;
+            SoundEvent effect;
             if (entity.getHealth() <= 0.0F) {
-                effect = (SoundEffect) _deathSound.invoke(nms);
+                effect = (SoundEvent) _deathSound.invoke(nms);
             } else {
-                effect = (SoundEffect) _hurtSound.invoke(nms, (DamageSource) null);
+                effect = (SoundEvent) _hurtSound.invoke(nms, (DamageSource) null);
             }
 
             if (effect != null) {
@@ -833,8 +843,8 @@ public class DamageManager extends MiniPlugin {
             if (flag && motY < 0.0) {
                 motY = 0;
             }
-
-            if (((CraftEntity) entity).getHandle().positionChanged) {
+            //                                      positionChanged
+            if (((CraftEntity) entity).getHandle().horizontalCollision) {
                 motY = 0.2;
             }
         }

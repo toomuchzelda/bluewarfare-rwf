@@ -1,6 +1,5 @@
 package me.libraryaddict.core.scoreboard;
 
-import com.google.common.base.Predicate;
 import me.libraryaddict.core.utils.UtilPlayer;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -12,17 +11,18 @@ import org.bukkit.scoreboard.Team.Option;
 import org.bukkit.scoreboard.Team.OptionStatus;
 
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class FakeScoreboard {
     private static char[] _chars = "abcdefghijklmno".toCharArray();
-    private ArrayList<FakeScoreboard> _children = new ArrayList<FakeScoreboard>();
-    private HashMap<DisplaySlot, String> _displayNames = new HashMap<DisplaySlot, String>();
+    private ArrayList<FakeScoreboard> _children = new ArrayList<>();
+    private HashMap<DisplaySlot, String> _displayNames = new HashMap<>();
     private String _name;
-    private HashMap<DisplaySlot, HashMap<String, Integer>> _objectives = new HashMap<DisplaySlot, HashMap<String, Integer>>();
+    private HashMap<DisplaySlot, HashMap<String, Integer>> _objectives = new HashMap<>();
     private int _previousSidebar;
     private Scoreboard _scoreboard;
-    private HashMap<String, FakeTeam> _teams = new HashMap<String, FakeTeam>();
+    private HashMap<String, FakeTeam> _teams = new HashMap<>();
     private Predicate<Player> _whoCanView;
 
     public FakeScoreboard(String name) {
@@ -80,13 +80,13 @@ public class FakeScoreboard {
     }
 
     public ArrayList<Player> getApplicable() {
-        ArrayList<Player> boards = new ArrayList<Player>();
+//        ArrayList<Player> boards = new ArrayList<>();
 
         ArrayList<Player> players = UtilPlayer.getPlayers();
 
-        players.stream().filter((player) -> _whoCanView.apply(player)).forEach((player) -> boards.add(player));
+//        players.stream().filter(_whoCanView).forEach((player) -> boards.add(player));
 
-        return boards;
+        return players.stream().filter(_whoCanView).collect(Collectors.toCollection(ArrayList::new));
     }
 
     public ArrayList<FakeScoreboard> getChildren() {
@@ -116,11 +116,9 @@ public class FakeScoreboard {
     }
 
     public ArrayList<Player> getPlayers() {
-        ArrayList<Player> boards = new ArrayList<Player>();
-
         ArrayList<Player> players = UtilPlayer.getPlayers();
 
-        return (ArrayList<Player>) players.stream().filter((player) -> _whoCanView.apply(player)).collect(Collectors.toList());
+        return players.stream().filter(_whoCanView).collect(Collectors.toCollection(ArrayList::new));
     }
 
     public int getScore(DisplaySlot slot, String name) {
@@ -147,9 +145,9 @@ public class FakeScoreboard {
     }
 
     public FakeScoreboard getSubScoreboard(Player player) {
-        Optional<FakeScoreboard> opt = getChildren().stream().filter((board) -> board._whoCanView.apply(player)).findAny();
+        Optional<FakeScoreboard> opt = getChildren().stream().filter(board -> board._whoCanView.test(player)).findAny();
 
-        return opt.isPresent() ? opt.get() : this;
+        return opt.orElse(this);
     }
 
     public FakeTeam getTeam(String name) {
@@ -186,7 +184,7 @@ public class FakeScoreboard {
     }
 
     public boolean isApplicable(Player player) {
-        return _whoCanView.apply(player);
+        return _whoCanView.test(player);
     }
 
     public void makeScore(DisplaySlot slot, String name, int score) {
@@ -201,12 +199,13 @@ public class FakeScoreboard {
         if (_objectives.containsKey(slot) && _objectives.get(slot).containsKey(name) && _objectives.get(slot).get(name) == score)
             return;
 
-        if (!_objectives.containsKey(slot)) {
-            _objectives.put(slot, new HashMap<String, Integer>());
-        }
-
-        _objectives.get(slot).put(name, score);
-
+        // cringe
+//        if (!_objectives.containsKey(slot)) {
+//            _objectives.put(slot, new HashMap<>());
+//        }
+//        _objectives.get(slot).put(name, score);
+        _objectives.computeIfAbsent(slot, ignored -> new HashMap<>()).put(name, score);
+        
         Objective obj = getObjective(slot);
 
         obj.getScore(name).setScore(score);

@@ -17,7 +17,7 @@ public class MysqlLoadPlayerStats extends DatabaseOperation
     {
         try (Connection con = getMysql())
         {
-            Statement stmt = con.createStatement();
+            Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
 
             ResultSet rs = stmt.executeQuery("SELECT `type`, `value` FROM stats WHERE uuid = '" + uuid.toString() + "'");
 

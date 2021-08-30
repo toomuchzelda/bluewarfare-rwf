@@ -3,7 +3,7 @@ package me.libraryaddict.core.utils;
 import org.bukkit.Color;
 import org.bukkit.FireworkEffect;
 import org.bukkit.Location;
-import org.bukkit.craftbukkit.v1_16_R3.entity.CraftFirework;
+import org.bukkit.craftbukkit.v1_17_R1.entity.CraftFirework;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Firework;
 import org.bukkit.inventory.meta.FireworkMeta;
@@ -102,7 +102,7 @@ public class UtilFirework {
         localFireworkMeta.setPower(1);
         localFirework.setFireworkMeta(localFireworkMeta);
 
-        ((CraftFirework) localFirework).getHandle().expectedLifespan = 1;
+        ((CraftFirework) localFirework).getHandle().lifetime = 1;
     }
 
     public static Firework spawnRandomFirework(Location location) {

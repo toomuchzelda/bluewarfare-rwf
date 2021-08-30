@@ -7,6 +7,7 @@ import me.libraryaddict.network.DatabaseOperation;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.UUID;
 
 public class MysqlFetchUUID extends DatabaseOperation {
@@ -17,7 +18,8 @@ public class MysqlFetchUUID extends DatabaseOperation {
     public MysqlFetchUUID(String playerName) {
         try (Connection con = getMysql()) {
             PreparedStatement stmt = con.prepareStatement(
-                    "SELECT uuid,info FROM playerinfo WHERE type = ? AND info = ? ORDER BY 'last_used' DESC LIMIT 0,1");
+                    "SELECT uuid,info FROM playerinfo WHERE type = ? AND info = ? ORDER BY 'last_used' DESC LIMIT 0,1",
+                    ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
 
             stmt.setInt(1, KeyMappings.getKey("Name"));
             stmt.setString(2, playerName);

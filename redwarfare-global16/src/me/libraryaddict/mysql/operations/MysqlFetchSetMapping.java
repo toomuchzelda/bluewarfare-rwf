@@ -13,7 +13,8 @@ public class MysqlFetchSetMapping extends DatabaseOperation {
 
     public MysqlFetchSetMapping(String key) {
         try (Connection con = getMysql()) {
-            PreparedStatement stmt = con.prepareStatement("INSERT IGNORE INTO mappings (name) VALUES (?)");
+            PreparedStatement stmt = con.prepareStatement("INSERT IGNORE INTO mappings (name) VALUES (?)",
+                    ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
             stmt.setString(1, key);
 
             stmt.execute();

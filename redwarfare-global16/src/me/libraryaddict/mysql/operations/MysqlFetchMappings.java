@@ -3,10 +3,7 @@ package me.libraryaddict.mysql.operations;
 import me.libraryaddict.core.utils.UtilError;
 import me.libraryaddict.network.DatabaseOperation;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class MysqlFetchMappings extends DatabaseOperation {
@@ -18,8 +15,11 @@ public class MysqlFetchMappings extends DatabaseOperation {
         try {
             con = getMysql();
 
-            Statement stmt = con.createStatement();
-
+            //Statement stmt = con.createStatement();
+            //in some new paper version a billion exceptions are thrown for scrolling backwards
+            // on a resultset of type forward only.
+            Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+            
             ResultSet rs = stmt.executeQuery("SELECT * FROM mappings");
 
             rs.beforeFirst();

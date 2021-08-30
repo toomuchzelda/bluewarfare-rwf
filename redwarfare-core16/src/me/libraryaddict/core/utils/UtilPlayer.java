@@ -7,11 +7,14 @@ import me.libraryaddict.core.condition.ConditionManager;
 import me.libraryaddict.core.fancymessage.FancyMessage;
 import me.libraryaddict.core.recharge.Recharge;
 import me.libraryaddict.disguise.utilities.reflection.ReflectionManager;
-import net.minecraft.server.v1_16_R3.FoodMetaData;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.server.network.ServerPlayerConnection;
+import net.minecraft.world.food.FoodData;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
-import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_17_R1.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -34,7 +37,9 @@ public class UtilPlayer {
 
     static {
         try {
-            _foodTicks = FoodMetaData.class.getDeclaredField("foodTickTimer");
+            //          FoodMetaData                            foodTickTimer
+            // tickTimer in Mojang Mapped, d in obfs'd
+            _foodTicks = FoodData.class.getDeclaredField("d");
             _foodTicks.setAccessible(true);
         } catch (Exception e) {
             UtilError.handle(e);
@@ -78,14 +83,33 @@ public class UtilPlayer {
             Object entityTrackerEntry = ReflectionManager.getEntityTrackerEntry(entity);
 
             if (entityTrackerEntry != null) {
+                //                                                                        MM: ServerEntity
                 Set<?> trackedPlayers = (Set<?>) ReflectionManager.getNmsField("EntityTrackerEntry", "trackedPlayers")
                         .get(entityTrackerEntry);
                 trackedPlayers = (Set<?>) new HashSet<>(trackedPlayers).clone(); // Copy before iterating to prevent
                 // ConcurrentModificationException
                 for (Object p : trackedPlayers) {
-                    Player player = (Player) ReflectionManager.getBukkitEntity(p);
-
+                    //causes class cast exception as of libs disguises 10.0.26
+                    //Player player = (Player) ReflectionManager.getBukkitEntity(p);
+                    ServerPlayerConnection playerCon = (ServerPlayerConnection) p;
+                    Player player = playerCon.getPlayer().getBukkitEntity();
+    
                     perverts.add(player);
+                    /*
+                    if(p instanceof net.minecraft.world.entity.Entity)
+                    {
+                        Bukkit.broadcastMessage("p is Entity, getting bukkit entity now...");
+                        Player player = (Player) ((net.minecraft.world.entity.Entity) p).getBukkitEntity();
+    
+                        perverts.add(player);
+                    }
+                    else
+                    {
+                        Bukkit.broadcastMessage("not instanceof Entity, trying getPlayer");
+                        
+                        Bukkit.broadcastMessage("added after typecasting");
+                    }
+                     */
                 }
             }
 
@@ -220,9 +244,19 @@ public class UtilPlayer {
             UtilError.handle(e);
         }
     }
-
+    
+    public static void sendPacket(Player player, Packet<ClientGamePacketListener>... packets)
+    {
+        net.minecraft.server.level.ServerPlayer nmsPlayer = ((CraftPlayer) player).getHandle();
+        for(Packet<ClientGamePacketListener> packet : packets)
+        {
+            nmsPlayer.connection.send(packet);
+        }
+    }
+    
+    
     public static void setArrowDespawnTimer(Player player, int timer) {
-        ((CraftPlayer) player).getHandle().arrowCooldown = timer;
+        ((CraftPlayer) player).getHandle().removeArrowTime = timer;
     }
 
     public static void setArrowsInBody(Player player, int arrows) {
