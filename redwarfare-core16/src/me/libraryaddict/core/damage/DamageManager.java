@@ -17,6 +17,8 @@ import me.libraryaddict.core.plugin.MiniPlugin;
 import me.libraryaddict.core.time.TimeEvent;
 import me.libraryaddict.core.time.TimeType;
 import me.libraryaddict.core.utils.*;
+import net.minecraft.network.protocol.game.ClientboundSetEntityMotionPacket;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.phys.Vec3;
@@ -28,6 +30,7 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.craftbukkit.v1_17_R1.entity.CraftEntity;
 import org.bukkit.craftbukkit.v1_17_R1.entity.CraftLivingEntity;
 import org.bukkit.craftbukkit.v1_17_R1.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_17_R1.util.CraftVector;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
@@ -106,6 +109,10 @@ public class DamageManager extends MiniPlugin {
                 .addPacketListener(new PacketAdapter(getPlugin(), ListenerPriority.LOW, PacketType.Play.Server.ENTITY_VELOCITY) {
                     @Override
                     public void onPacketSending(PacketEvent event) {
+                    	
+                    	if(!CustomDamageEvent.reduceVel)
+                    		return;
+                    	
                         event.setPacket(event.getPacket().shallowClone());
 
                         StructureModifier<Integer> ints = event.getPacket().getIntegers();
@@ -135,11 +142,32 @@ public class DamageManager extends MiniPlugin {
     }
 
     private void applyKnockback(CustomDamageEvent event) {
-        if (event.getFinalKnockback().length() <= 0) {
+    	Vector knockback = event.getFinalKnockback();
+        if (knockback.length() <= 0) {
             return;
         }
-
-        UtilEnt.velocity(event.getDamagee(), event.getFinalKnockback(), false);
+        
+        if(CustomDamageEvent.useImpulse)
+        {
+	        net.minecraft.world.entity.Entity nmsEntity = ((CraftEntity) (event.getDamagee())).getHandle();
+	        nmsEntity.hasImpulse = true;
+        }
+        
+        if(CustomDamageEvent.velPacket && event.isPlayerDamagee())
+        {
+        	Player damagee = event.getPlayerDamagee();
+        	//EntityPlayer nmsPlayer = ((CraftPlayer) (damagee)).getHandle();
+        	ServerPlayer nmsPlayer = ((CraftPlayer) (damagee)).getHandle();
+        	
+        	ClientboundSetEntityMotionPacket kbPacket = 
+        			new ClientboundSetEntityMotionPacket(damagee.getEntityId(), CraftVector.toNMS(knockback));
+        	nmsPlayer.connection.send(kbPacket);
+        	nmsPlayer.hurtMarked = false;
+        	
+        	//setmot here
+        }
+        else
+        	UtilEnt.velocity(event.getDamagee(), knockback, false);
 
         ConditionManager.addFall(event.getDamagee(), event.getFinalDamager());
     }
@@ -319,8 +347,16 @@ public class DamageManager extends MiniPlugin {
         int damageTicks = UtilTime.currentTick - pair.getKey();
 
         //previously less than or equal to
-        if (damageTicks < damagee.getMaximumNoDamageTicks() / 2F)
-            return false;
+        if(CustomDamageEvent.attackRate)
+        {
+        	if (damageTicks < damagee.getMaximumNoDamageTicks() / 2F)
+        		return false;
+        }
+        else
+        {
+        	if (damageTicks <= damagee.getMaximumNoDamageTicks() / 2F)
+        		return false;
+        }
 
         if (damage <= pair.getValue() + 0.001)
             return false;
@@ -343,8 +379,16 @@ public class DamageManager extends MiniPlugin {
         int damageTicks = UtilTime.currentTick - pair.getKey();
 
         //previously less than or equal to
-        if (damageTicks < damagee.getMaximumNoDamageTicks() / 2F)
-            return false;
+        if(CustomDamageEvent.attackRate)
+        {
+	        if (damageTicks < damagee.getMaximumNoDamageTicks() / 2F)
+	            return false;
+        }
+        else
+        {
+        	if (damageTicks <= damagee.getMaximumNoDamageTicks() / 2F)
+	            return false;
+        }
 
         return true;
     }
@@ -380,10 +424,13 @@ public class DamageManager extends MiniPlugin {
                 event.addRunnable(new DamageRunnable("Sprinting") {
                     @Override
                     public void run(CustomDamageEvent event2) {
-                        ((Player) cause).setSprinting(false);
-
-                        net.minecraft.world.entity.player.Player player = ((CraftPlayer) cause).getHandle();
-
+                    	net.minecraft.world.entity.player.Player player = ((CraftPlayer) cause).getHandle();
+                    	
+                    	if(CustomDamageEvent.sprintCancel)
+                        	player.setSharedFlag(3, false);
+                        else
+                        	((Player) cause).setSprinting(false);
+                    	
                         Vec3 currentMot = player.getDeltaMovement();
                         //player.motX *= 0.6;
                         //player.motZ *= 0.6;
