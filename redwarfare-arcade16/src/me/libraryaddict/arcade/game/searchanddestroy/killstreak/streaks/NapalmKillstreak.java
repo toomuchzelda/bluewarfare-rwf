@@ -130,7 +130,7 @@ public class NapalmKillstreak extends StreakBase {
 
         explosion.setIgnoreNonLiving(true);
 
-        explosion.explode();
+        explosion.customExplode();
 
         for (float x = -1; x <= 1; x += 0.25F) {
             for (float z = -1; z <= 1; z += 0.25F) {

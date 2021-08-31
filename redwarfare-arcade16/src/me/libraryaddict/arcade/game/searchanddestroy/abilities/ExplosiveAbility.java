@@ -72,7 +72,7 @@ public class ExplosiveAbility extends Ability {
 
         rocket.setIgnoreNonLiving(true);
 
-        rocket.explode();
+        rocket.customExplode();
     }
 
     @EventHandler
@@ -192,7 +192,7 @@ public class ExplosiveAbility extends Ability {
 
                     .setIgnoreNonLiving(true)
 
-                    .explode();
+                    .customExplode();
         }
     }
 

@@ -508,7 +508,8 @@ public class CustomExplosion extends Explosion
 		//newExplode();
 		//a();
 		//a(true);
-		newExplode();
+		//newExplode();
+		explode();
 		finalizeExplosion(true);
 		
 		return this;

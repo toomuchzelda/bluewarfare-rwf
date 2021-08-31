@@ -244,7 +244,7 @@ public class DemolitionsAbility extends Ability {
 
                 mineExplosion.setIgnoreNonLiving(true);
 
-                mineExplosion.explode();
+                mineExplosion.customExplode();
 
                 _mines.remove(mine);
 

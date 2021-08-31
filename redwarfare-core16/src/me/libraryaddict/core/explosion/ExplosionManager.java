@@ -42,6 +42,6 @@ public class ExplosionManager extends MiniPlugin {
 
         CustomExplosion explosion = new CustomExplosion(event.getLocation(), event.getYield(), AttackType.EXPLOSION);
 
-        explosion.explode();
+        explosion.customExplode();
     }
 }

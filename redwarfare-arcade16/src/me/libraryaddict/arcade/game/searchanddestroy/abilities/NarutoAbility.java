@@ -57,7 +57,7 @@ public class NarutoAbility extends Ability {
 
                 new CustomExplosion(event.getEntity().getLocation(), 6.5F, AttackType.EXPLOSION).
                 setDamageBlocks(false).setMaxDamage(2)
-                        .setDamager(player).setIgnoreNonLiving(true).explode();
+                        .setDamager(player).setIgnoreNonLiving(true).customExplode();
 
                 arrow.remove();
             } else {
