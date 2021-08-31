@@ -21,6 +21,11 @@ public class MysqlManager {
             return _mysqlPool.getConnection();
         }
     }
+    
+    public static boolean isInit()
+	{
+		return _mysqlPool != null;
+	}
 
     public static void shutdown() {
         while (true) {
@@ -46,7 +51,7 @@ public class MysqlManager {
 
         try {
             _mysqlPool = new ComboPooledDataSource();
-            _mysqlPool.setDriverClass("com.mysql.jdbc.Driver"); // loads the jdbc driver
+            _mysqlPool.setDriverClass("com.mysql.cj.jdbc.Driver"); // loads the jdbc driver
             _mysqlPool.setJdbcUrl("jdbc:mysql://mysql.server.address:3306/RedWarfare?useSSL=false");
             _mysqlPool.setUser("mysqlUser");
             _mysqlPool.setPassword("mysqlPassword");
