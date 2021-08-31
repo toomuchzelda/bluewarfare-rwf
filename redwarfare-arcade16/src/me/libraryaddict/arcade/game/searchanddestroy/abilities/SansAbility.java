@@ -80,7 +80,7 @@ public class SansAbility extends Ability {
 
     @EventHandler
     public void dodgeAttack(CustomDamageEvent event) {
-        if (event.getFinalDamager() instanceof Player) {
+        if (event.getFinalDamager() instanceof Player && event.isPlayerDamagee()) {
             if (!hasAbility((Player) event.getDamagee())) {
                 return;
             }
