@@ -203,28 +203,28 @@ public class CustomDamageEvent extends Event implements Cancellable {
                 	vec.setY(yVal);
                 
                 toReturn.add(vec);
-            }
+                
+                double level = 0;
 
-            double level = 0;
+                for (int value : _knockbackMult.values())
+                {
+                    level += value;
+                }
 
-            for (int value : _knockbackMult.values())
-            {
-                level += value;
-            }
+                if (level != 0)
+                {
+                	level *= xzMult;
+                    level /= 2;
 
-            if (level != 0)
-            {
-            	level *= xzMult;
-                level /= 2;
+                    Entity damager = getDamager();
+    				Vector kbEnch;
 
-                Entity damager = getDamager();
-				Vector kbEnch;
+    				double xKb = (double) -Math.sin(damager.getLocation().getYaw() * 3.1415927F / 180.0f) * (float) level;
+    				double zKb = (double) Math.cos(damager.getLocation().getYaw() * 3.1415927F / 180.0f) * (float) level;
 
-				double xKb = (double) -Math.sin(damager.getLocation().getYaw() * 3.1415927F / 180.0f) * (float) level;
-				double zKb = (double) Math.cos(damager.getLocation().getYaw() * 3.1415927F / 180.0f) * (float) level;
-
-				kbEnch = new Vector(xKb, yMult, zKb);
-				toReturn.add(kbEnch);
+    				kbEnch = new Vector(xKb, yMult, zKb);
+    				toReturn.add(kbEnch);
+                }
             }
         }
 
