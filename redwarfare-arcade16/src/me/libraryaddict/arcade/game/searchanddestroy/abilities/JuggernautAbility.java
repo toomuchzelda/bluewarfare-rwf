@@ -86,6 +86,7 @@ public class JuggernautAbility extends Ability {
         UtilPlayer.tele(player, player);
     }
 
+    /* packets used for Knockback no longer trigger PlayerVelocityEvent
     @EventHandler
     public void onVelocity(PlayerVelocityEvent event) {
         if (!isLive())
@@ -98,6 +99,23 @@ public class JuggernautAbility extends Ability {
             return;
 
         event.setVelocity(event.getVelocity().multiply(0.8));
+    }
+    */
+    
+    @EventHandler
+    public void onKnockback(CustomDamageEvent event)
+    {
+    	if(!isLive())
+    		return;
+    	
+    	if(event.isPlayerDamagee())
+    	{
+    		Player p = event.getPlayerDamagee();
+    		if(isAlive(p) && hasAbility(p))
+    		{
+    			event.setKnockback(event.getFinalKnockback().multiply(0.8));
+    		}
+    	}
     }
 
     @Override
