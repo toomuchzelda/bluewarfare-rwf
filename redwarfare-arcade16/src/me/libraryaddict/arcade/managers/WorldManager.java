@@ -289,7 +289,8 @@ public class WorldManager extends MiniPlugin {
 
         File file = world.getWorldFolder();
 
-        System.out.println("Unloading world " + file.getAbsolutePath());
+        //System.out.println("Unloading world " + file.getAbsolutePath());
+        getPlugin().getLogger().info("Unloading world " + file.getAbsolutePath());
 
         new BukkitRunnable() {
             @Override

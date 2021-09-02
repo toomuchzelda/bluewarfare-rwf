@@ -344,11 +344,13 @@ public class WorldData {
     }
 
     public void setupWorld() {
-    	String name = getName() + "_" + System.currentTimeMillis();
+    	String name = getName(); //+ System.currentTimeMillis();
 
     	//minecraft only accepts world folder names with letters, numbers and a few other characters
     	//just filter out non-letters and numbers for easiness
-    	String filteredName = "";
+    	//Append "CACHEDMAP" to beginning so it can be detected by onEnable() without the '_'
+    	//mfw no regex
+    	String filteredName = "CACHEDMAP";
     	for(int i = 0; i < name.length(); i++)
     	{
     		char c = name.charAt(i);
