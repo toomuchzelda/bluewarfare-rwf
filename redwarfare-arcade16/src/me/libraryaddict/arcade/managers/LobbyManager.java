@@ -320,7 +320,8 @@ public class LobbyManager extends MiniPlugin {
 
         if (getGame().getKits().length > 1) {
             player.getInventory().addItem(_kitSelector);
-            player.getInventory().addItem(getManager().getGameManager().getKitLayout());
+            //player.getInventory().addItem(getManager().getGameManager().getKitLayout());
+            player.getInventory().setItem(6, getManager().getGameManager().getKitLayout());
             player.getInventory().setItem(7, getManager().getPreferences().getIcon());
         }
 
