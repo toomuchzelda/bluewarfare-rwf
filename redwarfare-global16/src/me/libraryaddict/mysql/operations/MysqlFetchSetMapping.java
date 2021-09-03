@@ -19,7 +19,8 @@ public class MysqlFetchSetMapping extends DatabaseOperation {
 
             stmt.execute();
 
-            stmt = con.prepareStatement("SELECT * FROM mappings WHERE name = ?");
+            stmt = con.prepareStatement("SELECT * FROM mappings WHERE name = ?", 
+            		ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
             stmt.setString(1, key);
 
             ResultSet rs = stmt.executeQuery();
