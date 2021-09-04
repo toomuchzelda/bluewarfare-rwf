@@ -1,13 +1,13 @@
 # BlueWarfare-RWF
 
-Attempt to update libraryaddict's Search and Destroy to 1.16.5
+libraryaddict's Search and Destroy updated to 1.17.1
 (plus whatever changes i made in bluewarfare)
 
 Doesn't include the Hub or Build servers
 
 Some changes will have comments to explain my terrible code or backup some old value used
 
-Requires Maven to build, PaperMC 1.16.5 to run as well as ProtocolLib 4.6.0 and LibsDisguises 10.0.20
+Requires Maven to build, PaperMC 1.17.1 to run as well as ProtocolLib 4.7.0 and LibsDisguises 10.0.26
 The jars in \dependencies aren't needed, but they're there i guess.
 
 Credit to libraryaddict for creating the original server and plugins: https://github.com/libraryaddict/RedWarfare.
