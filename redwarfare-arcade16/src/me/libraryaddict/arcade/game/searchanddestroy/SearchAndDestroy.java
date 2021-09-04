@@ -22,6 +22,8 @@ import me.libraryaddict.core.time.TimeEvent;
 import me.libraryaddict.core.time.TimeType;
 import me.libraryaddict.core.utils.*;
 import me.libraryaddict.core.utils.UtilParticle.ViewDist;
+
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
@@ -41,14 +43,15 @@ import org.bukkit.scoreboard.Team.OptionStatus;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 public class SearchAndDestroy extends TeamGame {
 	private ArrayList<TeamBomb> _bombs = new ArrayList<TeamBomb>();
-	private ArrayList<Hill> _hills = new ArrayList<Hill>();
-	private Hill _activeHill = null;
 	private long _deathTimer = 600000;
 	private KillstreakManager _killstreakManager;
 	private long _lastDeath;
@@ -58,9 +61,12 @@ public class SearchAndDestroy extends TeamGame {
 			.setInstantDeath();
 	private AttackType END_OF_GAME = new AttackType("End of Game", "%Killed% was unable of escape the strings of time")
 			.setIgnoreArmor().setNoKnockback();
-
+	
 	//changed in registerBombs()/registerHills()
 	private SNDMapType _mapType = SNDMapType.SND;
+	private ArrayList<Hill> _hills = new ArrayList<Hill>();
+	private Hill _activeHill = null;
+	private HashMap<GameTeam, Integer> _kothScore = new HashMap<>();
 
 	public SearchAndDestroy(ArcadeManager arcadeManager) {
 		super(arcadeManager, ServerType.SearchAndDestroy);
@@ -116,6 +122,14 @@ public class SearchAndDestroy extends TeamGame {
 	}
 
 	public void drawScoreboard() {
+		if(_mapType == SNDMapType.SND)
+			drawSNDScoreboard();
+		else if(_mapType == SNDMapType.KOTH)
+			drawKothScoreboard();
+	}
+
+	private void drawSNDScoreboard()
+	{
 		FakeScoreboard board = getManager().getScoreboard().getMainScoreboard();
 
 		ArrayList<GameTeam> teams = getTeams(true);
@@ -175,7 +189,82 @@ public class SearchAndDestroy extends TeamGame {
 
 		board.setSidebar(lines);
 	}
+	
+	private void drawKothScoreboard()
+	{
+		FakeScoreboard board = getManager().getScoreboard().getMainScoreboard();
 
+		ArrayList<GameTeam> teams = getTeams(true);
+
+		Collections.sort(teams, GameTeam.COMPARE_PLAYERS);
+
+		ArrayList<String> lines = new ArrayList<String>();
+
+		Iterator<GameTeam> itel = teams.iterator();
+		//Iterator<TeamBomb> bombItel = getBombs().stream().filter((bomb) -> !bomb.isOwned()).iterator();
+
+		while (itel.hasNext()) {
+			GameTeam team = itel.next();
+
+			lines.add(team.getColoring() + C.Bold + team.getName());
+					//C.Reset + ": " + team.getPlayers().size() + " players");
+			int score = _kothScore.get(team);
+			lines.add(team.getColoring() + C.Bold + "Score: " + score);
+			lines.add(team.getPlayers().size() + " players");
+			
+			
+			//approx. appearance
+			/*
+			 * Team (Bold, coloured in team colour)
+			 * Score: (team's score) (Bold, team coloured)
+			 * (amount of players) players
+			 * ....repeat for each team
+			 */
+
+			/*for (TeamBomb bomb : getBombs()) {
+				if (!bomb.isOwned() || bomb.getTeam() != team) {
+					continue;
+				}
+
+				if (bomb.isArmed()) {
+					String disarm = bomb.getDisarmStatus();
+
+					if (disarm == null) {
+						lines.add(team.getColoring() + "Bomb " + C.Bold + bomb.getTimeLeft());
+					} else {
+						lines.add(team.getColoring() + disarm + " " + team.getColoring() + C.Bold + bomb.getTimeLeft());
+					}
+				} else {
+					lines.add("Bomb is Safe");
+				}
+			}*/
+
+			if (itel.hasNext())
+				lines.add("");
+		}
+		
+		lines.add(C.Bold + "Active Hill: " + _activeHill.getName());
+		
+		/*while (bombItel.hasNext()) {
+			TeamBomb bomb = bombItel.next();
+
+			if (!bomb.isArmed())
+				lines.add(C.Bold + "Nuke");
+			else
+				lines.add(bomb.getTeam().getColoring() + C.Bold + "Nuke " + bomb.getTimeLeft());
+		}*/
+
+		if (lines.size() > 15) {
+			while (lines.contains(""))
+				lines.remove("");
+		}
+
+		if (!lines.isEmpty() && lines.get(lines.size() - 1).equals(""))
+			lines.remove(lines.size() - 1);
+
+		board.setSidebar(lines);
+	}
+	
 	public ArrayList<TeamBomb> getBombs() {
 		return _bombs;
 	}
@@ -288,7 +377,7 @@ public class SearchAndDestroy extends TeamGame {
 
 		_lastDeath = System.currentTimeMillis();
 	}
-
+	
 	public void onExplode(TeamBomb teamBomb) {
 		Location loc = teamBomb.getBomb().getLocation();
 
@@ -453,6 +542,57 @@ public class SearchAndDestroy extends TeamGame {
 	}
 
 	@EventHandler
+	public void onKothTick(TimeEvent event)
+	{
+		if(_mapType != SNDMapType.KOTH)
+			return;
+		
+		if(event.getType() != TimeType.TICK)
+			return;
+		
+		Logger logger = ArcadeManager.getManager().getPlugin().getLogger();
+		logger.info("koth ticking...");
+		
+		for(Player p : Bukkit.getOnlinePlayers())
+		{
+			if(_activeHill.getBoundingBox().contains(p.getBoundingBox()))
+			{
+				if(!_activeHill.getStandingPlayers().contains(p))
+				{
+					_activeHill.addStandingPlayer(p);
+				}
+				logger.info("player " + p.getName() + " standing inside " + _activeHill.getName());
+			}
+			else if(_activeHill.getStandingPlayers().contains(p))
+			{
+				_activeHill.removeStandingPlayer(p);
+			}
+		}
+		
+		ArrayList<GameTeam> teamsOnPoint = new ArrayList<>();
+		for(Player p : _activeHill.getStandingPlayers())
+		{
+			teamsOnPoint.add(getTeam(p));
+			for(GameTeam team : teamsOnPoint)
+			{
+				//multiple teams on point, reward no points
+				if(getTeam(p) != team)
+				{
+					logger.info("more than 1 team standing, cancelled");
+					return;
+				}
+			}
+		}
+		
+		//should be only one team in this List
+		GameTeam scoringTeam = teamsOnPoint.get(0);
+		int score = _kothScore.get(scoringTeam);
+		score++;
+		_kothScore.put(teamsOnPoint.get(0), score);
+		logger.info("gave team " + scoringTeam.getName() + " one point.\nend of tick");
+	}
+	
+	@EventHandler
 	public void onScoreboardDraw(TimeEvent event) {
 		if (event.getType() != TimeType.TICK)
 			return;
@@ -500,27 +640,57 @@ public class SearchAndDestroy extends TeamGame {
 		if (event.getState() != GameState.MapLoaded)
 			return;
 
+		Logger logger = ArcadeManager.getManager().getPlugin().getLogger();
+
 		//check if it's bombs or hills first
-		//should be null if nothing returned (getting from a hashmap)
-		ArrayList<String> hills = getData().getData("Hills1");
-		if(hills.size() > 0)
+		Iterator<Entry<String, ArrayList<String>>> iter = getData().getDataIterator();
+		while(iter.hasNext())
 		{
-			_mapType = SNDMapType.KOTH;
-			
-			for(String hillKey : hills)
+			Entry<String, ArrayList<String>> entry = iter.next();
+			String key = entry.getKey();
+
+			/*logger.info("key: " + key + "\n values:");
+			for(String s : entry.getValue())
 			{
+				logger.info("    " + s);
+			}*/
+
+			if(key.startsWith("Hill"))
+			{
+				//logger.info("maptype koth");
+				_mapType = SNDMapType.KOTH;
+
+				int i = 0;
+				logger.info(key + " , iteration " + i);
 				//need to be ordered XZ corner, then -XZ corner, in the config.yml
-				ArrayList<Location> hillLocs = getData().getCustomLocs(hillKey);
+				ArrayList<Location> hillLocs = getData().getCustomLocs(key);
 				//add 1 to XZ corner to bump it up to edge of blocks
-				int number = Integer.parseInt(hillKey.replaceAll("Hills", ""));
-				Hill hill = new Hill(number, hillLocs.get(0).add(1, 0, 1), hillLocs.get(1));
+				//int number = Integer.parseInt(hillKey.replaceAll("Hills", ""));
+				String name = key.replaceFirst("Hill", "");
+				Hill hill = new Hill(i, name, hillLocs.get(0).add(1, 0, 1), hillLocs.get(1));
 				_hills.add(hill);
-				ArcadeManager.getManager().getPlugin().getLogger().info("Added Hill: " + hill.toString());
+				logger.info("Added Hill: " + hill.toString());
 				hill.startHologram();
+				hill.drawHologram();
+				i++;
+				
+				if(_activeHill == null)
+				{
+					_activeHill = hill;
+					hill.setActiveHill(true);
+				}
 			}
 		}
-		// else it's snd
-		else
+		//logger.info("Hill1 null? snd gametype");
+		if(_mapType == SNDMapType.KOTH)
+		{
+			//start all scores at 0
+			for(GameTeam team : getTeams())
+			{
+				_kothScore.put(team, 0);
+			}
+		}
+		else// if(_mapType != SNDMapType.KOTH)
 		{
 			_mapType = SNDMapType.SND;
 			for (TeamSettings settings : TeamSettings.values()) {

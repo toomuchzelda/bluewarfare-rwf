@@ -13,7 +13,9 @@ import java.io.File;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map.Entry;
 
 public class WorldData {
     private String _author;
@@ -91,6 +93,11 @@ public class WorldData {
 
     public ArrayList<String> getData(String key) {
         return _data.get(key);
+    }
+    
+    public Iterator<Entry<String , ArrayList<String>>> getDataIterator()
+    {
+    	return _data.entrySet().iterator();
     }
 
     public String getDescription() {
