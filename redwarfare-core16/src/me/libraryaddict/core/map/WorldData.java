@@ -19,6 +19,7 @@ public class WorldData {
     private String _author;
     private Location _borderCenter;
     private int _borderRadius;
+    //keys and objects of everything listen under "Custom" in map config.yml
     private HashMap<String, ArrayList<String>> _data = new HashMap<String, ArrayList<String>>();
     private String _description;
     private boolean _isSquare;
@@ -88,7 +89,7 @@ public class WorldData {
         return list;
     }
 
-    public ArrayList getData(String key) {
+    public ArrayList<String> getData(String key) {
         return _data.get(key);
     }
 

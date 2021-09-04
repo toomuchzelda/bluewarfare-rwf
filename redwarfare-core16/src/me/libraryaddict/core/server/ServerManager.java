@@ -84,9 +84,7 @@ public class ServerManager extends MiniPlugin {
             _gameType = ServerType.Hub;
         } else if (plugin.getName().contains("Arcade")) {
             _serverName = "Arcade";
-            _gameType = 
-            		ServerType
-            		.SearchAndDestroy;
+            _gameType = ServerType.SearchAndDestroy;
         } /*else if (plugin.getName().contains("Build")) {
             _serverName = "Build";
             _gameType = ServerType.Build;

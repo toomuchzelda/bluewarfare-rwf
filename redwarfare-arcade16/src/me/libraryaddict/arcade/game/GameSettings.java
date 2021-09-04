@@ -12,7 +12,7 @@ public enum GameSettings {
     SearchAndDestroy(ServerType.SearchAndDestroy, SearchAndDestroy.class),
 
     SurvivalGames(ServerType.SurvivalGames, SurvivalGames.class);
-
+	
     private Class<? extends Game> _gameClass;
     private ServerType _gameDisplay;
 

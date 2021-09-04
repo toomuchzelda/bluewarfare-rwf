@@ -46,550 +46,580 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class SearchAndDestroy extends TeamGame {
-    private ArrayList<TeamBomb> _bombs = new ArrayList<TeamBomb>();
-    private long _deathTimer = 600000;
-    private KillstreakManager _killstreakManager;
-    private long _lastDeath;
-    private ArrayList<GameTeam> _lastManStanding = new ArrayList<GameTeam>();
-    private int _poisonStage;
-    private AttackType BOMB_EXPLODE = new AttackType("Bomb Exploded", "%Killed% was caught in the explosion of their bomb")
-            .setInstantDeath();
-    private AttackType END_OF_GAME = new AttackType("End of Game", "%Killed% was unable of escape the strings of time")
-            .setIgnoreArmor().setNoKnockback();
+	private ArrayList<TeamBomb> _bombs = new ArrayList<TeamBomb>();
+	private ArrayList<Hill> _hills = new ArrayList<Hill>();
+	private Hill _activeHill = null;
+	private long _deathTimer = 600000;
+	private KillstreakManager _killstreakManager;
+	private long _lastDeath;
+	private ArrayList<GameTeam> _lastManStanding = new ArrayList<GameTeam>();
+	private int _poisonStage;
+	private AttackType BOMB_EXPLODE = new AttackType("Bomb Exploded", "%Killed% was caught in the explosion of their bomb")
+			.setInstantDeath();
+	private AttackType END_OF_GAME = new AttackType("End of Game", "%Killed% was unable of escape the strings of time")
+			.setIgnoreArmor().setNoKnockback();
 
-    public SearchAndDestroy(ArcadeManager arcadeManager) {
-        super(arcadeManager, ServerType.SearchAndDestroy);
-
-        setKits(new KitTrooper(), new KitBerserker(), new KitDemolitions(), new KitDwarf(), new KitExplosive(),
-                new KitGhost(getManager().getPlugin()), new KitJuggernaut(getManager().getPlugin()), new KitLongbow(),
-                new KitMedic(), new KitPyro(), new KitRewind(), new KitShortbow(), new KitSpy(), new KitTeleporter(),
-                new KitVampire(), new KitVenom(), new KitWarper(), new KitNinja(), new KitFrost(), new KitSkinner(),
-                new KitWraith(getManager().getPlugin()), new KitBleeder(), new KitHealer(),
-                new KitSans(), new KitSacrificial());//, new KitNaruto());
+	//changed in registerBombs()/registerHills()
+	private SNDMapType _mapType = SNDMapType.SND;
 
-        _killstreakManager = new KillstreakManager(this);
+	public SearchAndDestroy(ArcadeManager arcadeManager) {
+		super(arcadeManager, ServerType.SearchAndDestroy);
+
+		setKits(new KitTrooper(), new KitBerserker(), new KitDemolitions(), new KitDwarf(), new KitExplosive(),
+				new KitGhost(getManager().getPlugin()), new KitJuggernaut(getManager().getPlugin()), new KitLongbow(),
+				new KitMedic(), new KitPyro(), new KitRewind(), new KitShortbow(), new KitSpy(), new KitTeleporter(),
+				new KitVampire(), new KitVenom(), new KitWarper(), new KitNinja(), new KitFrost(), new KitSkinner(),
+				new KitWraith(getManager().getPlugin()), new KitBleeder(), new KitHealer(),
+				new KitSans(), new KitSacrificial(), new KitNaruto());
+
+		_killstreakManager = new KillstreakManager(this);
 
-        setOption(GameOption.STEAK_HEALTH, 8D);
-        setOption(GameOption.HATS, true);
-        setOption(GameOption.INFORM_KILL_ASSIST, true);
-        setOption(GameOption.TABLIST_KILLS, true);
-        setOption(GameOption.COLOR_CHAT_NAMES, false);
-    }
+		setOption(GameOption.STEAK_HEALTH, 8D);
+		setOption(GameOption.HATS, true);
+		setOption(GameOption.INFORM_KILL_ASSIST, true);
+		setOption(GameOption.TABLIST_KILLS, true);
+		setOption(GameOption.COLOR_CHAT_NAMES, false);
+	}
 
-    private void checkLastMan() {
-        new BukkitRunnable() {
-            public void run() {
-                if (!isLive())
-                    return;
+	private void checkLastMan() {
+		new BukkitRunnable() {
+			public void run() {
+				if (!isLive())
+					return;
 
-                for (GameTeam team : getTeams()) {
-                    if (_lastManStanding.contains(team))
-                        continue;
+				for (GameTeam team : getTeams()) {
+					if (_lastManStanding.contains(team))
+						continue;
 
-                    ArrayList<Player> players = team.getPlayers(true);
-
-                    if (players.size() != 1)
-                        continue;
-
-                    _lastManStanding.add(team);
-
-                    Player player = players.get(0);
-
-                    for (ItemStack item : UtilInv.getNonClonedInventory(player)) {
-                        if (item.getType() != Material.BLAZE_POWDER)
-                            continue;
-
-                        FuseType.BOMB_ARMING.setLevel(item, 10);
-                    }
-
-                    player.updateInventory();
-
-                    Announce(team.getColoring() + player.getName() + " is last man standing!");
-                }
-            }
-        }.runTask(getManager().getPlugin());
-    }
-
-    public void drawScoreboard() {
-        FakeScoreboard board = getManager().getScoreboard().getMainScoreboard();
-
-        ArrayList<GameTeam> teams = getTeams(true);
-
-        Collections.sort(teams, GameTeam.COMPARE_PLAYERS);
-
-        ArrayList<String> lines = new ArrayList<String>();
-
-        Iterator<GameTeam> itel = teams.iterator();
-        Iterator<TeamBomb> bombItel = getBombs().stream().filter((bomb) -> !bomb.isOwned()).iterator();
-
-        while (itel.hasNext()) {
-            GameTeam team = itel.next();
-
-            lines.add(team.getColoring() + C.Bold + team.getName());
-
-            lines.add(team.getPlayers(true).size() + " alive");
-
-            for (TeamBomb bomb : getBombs()) {
-                if (!bomb.isOwned() || bomb.getTeam() != team) {
-                    continue;
-                }
+					ArrayList<Player> players = team.getPlayers(true);
+
+					if (players.size() != 1)
+						continue;
+
+					_lastManStanding.add(team);
+
+					Player player = players.get(0);
+
+					for (ItemStack item : UtilInv.getNonClonedInventory(player)) {
+						if (item.getType() != Material.BLAZE_POWDER)
+							continue;
+
+						FuseType.BOMB_ARMING.setLevel(item, 10);
+					}
 
-                if (bomb.isArmed()) {
-                    String disarm = bomb.getDisarmStatus();
-
-                    if (disarm == null) {
-                        lines.add(team.getColoring() + "Bomb " + C.Bold + bomb.getTimeLeft());
-                    } else {
-                        lines.add(team.getColoring() + disarm + " " + team.getColoring() + C.Bold + bomb.getTimeLeft());
-                    }
-                } else {
-                    lines.add("Bomb is Safe");
-                }
-            }
+					player.updateInventory();
+
+					Announce(team.getColoring() + player.getName() + " is last man standing!");
+				}
+			}
+		}.runTask(getManager().getPlugin());
+	}
 
-            if (itel.hasNext() || bombItel.hasNext())
-                lines.add("");
-        }
+	public void drawScoreboard() {
+		FakeScoreboard board = getManager().getScoreboard().getMainScoreboard();
 
-        while (bombItel.hasNext()) {
-            TeamBomb bomb = bombItel.next();
+		ArrayList<GameTeam> teams = getTeams(true);
+
+		Collections.sort(teams, GameTeam.COMPARE_PLAYERS);
 
-            if (!bomb.isArmed())
-                lines.add(C.Bold + "Nuke");
-            else
-                lines.add(bomb.getTeam().getColoring() + C.Bold + "Nuke " + bomb.getTimeLeft());
-        }
+		ArrayList<String> lines = new ArrayList<String>();
+
+		Iterator<GameTeam> itel = teams.iterator();
+		Iterator<TeamBomb> bombItel = getBombs().stream().filter((bomb) -> !bomb.isOwned()).iterator();
 
-        if (lines.size() > 15) {
-            while (lines.contains(""))
-                lines.remove("");
-        }
+		while (itel.hasNext()) {
+			GameTeam team = itel.next();
 
-        if (!lines.isEmpty() && lines.get(lines.size() - 1).equals(""))
-            lines.remove(lines.size() - 1);
+			lines.add(team.getColoring() + C.Bold + team.getName());
+
+			lines.add(team.getPlayers(true).size() + " alive");
 
-        board.setSidebar(lines);
-    }
+			for (TeamBomb bomb : getBombs()) {
+				if (!bomb.isOwned() || bomb.getTeam() != team) {
+					continue;
+				}
 
-    public ArrayList<TeamBomb> getBombs() {
-        return _bombs;
-    }
+				if (bomb.isArmed()) {
+					String disarm = bomb.getDisarmStatus();
 
-    @Override
-    public int getCreditsKill() {
-        return 0;
-    }
+					if (disarm == null) {
+						lines.add(team.getColoring() + "Bomb " + C.Bold + bomb.getTimeLeft());
+					} else {
+						lines.add(team.getColoring() + disarm + " " + team.getColoring() + C.Bold + bomb.getTimeLeft());
+					}
+				} else {
+					lines.add("Bomb is Safe");
+				}
+			}
+
+			if (itel.hasNext() || bombItel.hasNext())
+				lines.add("");
+		}
+
+		while (bombItel.hasNext()) {
+			TeamBomb bomb = bombItel.next();
 
-    @Override
-    public int getCreditsLose() {
-        return 1;
-    }
+			if (!bomb.isArmed())
+				lines.add(C.Bold + "Nuke");
+			else
+				lines.add(bomb.getTeam().getColoring() + C.Bold + "Nuke " + bomb.getTimeLeft());
+		}
 
-    @Override
-    public int getCreditsWin() {
-        return 3;
-    }
-    
-    public boolean isEndGame() {
-        return UtilTime.elasped(getStateChanged(), _deathTimer + 60000);
-    }
+		if (lines.size() > 15) {
+			while (lines.contains(""))
+				lines.remove("");
+		}
 
-    @EventHandler
-    public void onBombInteract(PlayerInteractEntityEvent event) {
-        if (!isLive())
-            return;
+		if (!lines.isEmpty() && lines.get(lines.size() - 1).equals(""))
+			lines.remove(lines.size() - 1);
 
-        Player player = event.getPlayer();
+		board.setSidebar(lines);
+	}
 
-        if (!isAlive(player))
-            return;
+	public ArrayList<TeamBomb> getBombs() {
+		return _bombs;
+	}
 
-        for (TeamBomb bomb : getBombs()) {
-            if (!bomb.isArmed())
-                continue;
+	@Override
+	public int getCreditsKill() {
+		return 0;
+	}
 
-            if (bomb.getBomb() != event.getRightClicked()) {
-                continue;
-            }
+	@Override
+	public int getCreditsLose() {
+		return 1;
+	}
 
-            bomb.onInteract(player, UtilInv.getHolding(player, Material.BLAZE_POWDER));
-        }
-    }
+	@Override
+	public int getCreditsWin() {
+		return 3;
+	}
 
-    @EventHandler
-    public void onBombInteract(PlayerInteractEvent event) {
-        if (!isLive())
-            return;
+	public boolean isEndGame() {
+		return UtilTime.elasped(getStateChanged(), _deathTimer + 60000);
+	}
 
-        if (event.useItemInHand() == Result.DENY)
-            return;
+	@EventHandler
+	public void onBombInteract(PlayerInteractEntityEvent event) {
+		if (!isLive())
+			return;
 
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK)
-            return;
+		Player player = event.getPlayer();
 
-        Player player = event.getPlayer();
+		if (!isAlive(player))
+			return;
 
-        if (!isAlive(player))
-            return;
+		for (TeamBomb bomb : getBombs()) {
+			if (!bomb.isArmed())
+				continue;
 
-        for (TeamBomb bomb : getBombs()) {
-            if (!bomb.getBlock().equals(event.getClickedBlock())) {
-                continue;
-            }
+			if (bomb.getBomb() != event.getRightClicked()) {
+				continue;
+			}
 
-            bomb.onInteract(player, event.getItem());
-        }
-    }
+			bomb.onInteract(player, UtilInv.getHolding(player, Material.BLAZE_POWDER));
+		}
+	}
 
-    @EventHandler
-    public void onBombTick(TimeEvent event) {
-        if (event.getType() != TimeType.TICK)
-            return;
+	@EventHandler
+	public void onBombInteract(PlayerInteractEvent event) {
+		if (!isLive())
+			return;
 
-        if (!isLive())
-            return;
+		if (event.useItemInHand() == Result.DENY)
+			return;
 
-        Collections.sort(getBombs(), new Comparator<TeamBomb>() {
+		if (event.getAction() != Action.RIGHT_CLICK_BLOCK)
+			return;
 
-            @Override
-            public int compare(TeamBomb o1, TeamBomb o2) {
-                return Long.compare(o1.getFused(), o2.getFused());
-            }
-        });
+		Player player = event.getPlayer();
 
-        ArrayList<TeamBomb> toCheck = new ArrayList<TeamBomb>(getBombs());
+		if (!isAlive(player))
+			return;
 
-        while (!toCheck.isEmpty()) {
-            TeamBomb bomb = toCheck.remove(0);
+		for (TeamBomb bomb : getBombs()) {
+			if (!bomb.getBlock().equals(event.getClickedBlock())) {
+				continue;
+			}
 
-            if (!getBombs().contains(bomb))
-                continue;
+			bomb.onInteract(player, event.getItem());
+		}
+	}
 
-            bomb.tickBomb();
+	@EventHandler
+	public void onBombTick(TimeEvent event) {
+		if (event.getType() != TimeType.TICK)
+			return;
 
-            if (!bomb.isArmed())
-                continue;
+		if (!isLive())
+			return;
 
-            if (bomb.getTimeLeft() > 0)
-                continue;
+		Collections.sort(getBombs(), new Comparator<TeamBomb>() {
 
-            onExplode(bomb);
-        }
-    }
+			@Override
+			public int compare(TeamBomb o1, TeamBomb o2) {
+				return Long.compare(o1.getFused(), o2.getFused());
+			}
+		});
 
-    @EventHandler
-    public void onDeath(DeathEvent event) {
-        checkLastMan();
+		ArrayList<TeamBomb> toCheck = new ArrayList<TeamBomb>(getBombs());
 
-        _lastDeath = System.currentTimeMillis();
-    }
+		while (!toCheck.isEmpty()) {
+			TeamBomb bomb = toCheck.remove(0);
 
-    public void onExplode(TeamBomb teamBomb) {
-        Location loc = teamBomb.getBomb().getLocation();
+			if (!getBombs().contains(bomb))
+				continue;
 
-        loc.getWorld().playSound(loc, Sound.ENTITY_GENERIC_EXPLODE, 10000, 0);
-        UtilParticle.playParticle(Particle.EXPLOSION_HUGE, loc, ViewDist.LONGER);
+			bomb.tickBomb();
 
-        Iterator<TeamBomb> itel = getBombs().iterator();
+			if (!bomb.isArmed())
+				continue;
 
-        while (itel.hasNext()) {
-            TeamBomb bomb = itel.next();
+			if (bomb.getTimeLeft() > 0)
+				continue;
 
-            if (bomb.getTeam() != teamBomb.getTeam())
-                continue;
+			onExplode(bomb);
+		}
+	}
 
-            if (!bomb.isOwned() && teamBomb.isOwned()) {
-                bomb.restore();
-                continue;
-            }
+	@EventHandler
+	public void onDeath(DeathEvent event) {
+		checkLastMan();
 
-            bomb.remove();
-            itel.remove();
-        }
+		_lastDeath = System.currentTimeMillis();
+	}
 
-        for (Block block : UtilBlock.getBlocks(teamBomb.getBlock().getLocation().add(0.5, 0.5, 0.5), 6)) {
-            Material mat = block.getType();
+	public void onExplode(TeamBomb teamBomb) {
+		Location loc = teamBomb.getBomb().getLocation();
 
-            //teleporter block?
-            if (mat == Material.ACACIA_LOG)
-                continue;
+		loc.getWorld().playSound(loc, Sound.ENTITY_GENERIC_EXPLODE, 10000, 0);
+		UtilParticle.playParticle(Particle.EXPLOSION_HUGE, loc, ViewDist.LONGER);
 
-            if (UtilBlock.solid(mat))
-                block.setType(Material.COAL_BLOCK);
-            else if (mat.name().contains("SLAB") || mat.name().contains("STEP")) {
-                block.setType(Material.BLACKSTONE_SLAB);
-            }
-        }
+		Iterator<TeamBomb> itel = getBombs().iterator();
 
-        if (teamBomb.isOwned())
-            Announce(teamBomb.getTeam().getColoring() + teamBomb.getTeam().getName() + "'s " + C.Gold + "bomb exploded!");
-        else
-            Announce(teamBomb.getTeam().getColoring() + teamBomb.getTeam().getName() + "'s " + C.Gold
-                    + "nuke exploded! Everyone but them annihilated!");
+		while (itel.hasNext()) {
+			TeamBomb bomb = itel.next();
 
-        setOption(GameOption.DEATH_MESSAGES, false);
+			if (bomb.getTeam() != teamBomb.getTeam())
+				continue;
 
-        for (Player player : (teamBomb.isOwned() ? teamBomb.getTeam().getPlayers(true)
-                : getPlayers(true).stream().filter((player) -> !teamBomb.getTeam().isInTeam(player))
-                .collect(Collectors.toList()))) {
-            getDamageManager().newDamage(player, BOMB_EXPLODE, 0);
-        }
+			if (!bomb.isOwned() && teamBomb.isOwned()) {
+				bomb.restore();
+				continue;
+			}
 
-        setOption(GameOption.DEATH_MESSAGES, true);
-    }
+			bomb.remove();
+			itel.remove();
+		}
 
-    @EventHandler
-    public void onGameEnd(GameStateEvent event) {
-        if (event.getState() != GameState.End && event.getState() != GameState.Dead)
-            return;
+		for (Block block : UtilBlock.getBlocks(teamBomb.getBlock().getLocation().add(0.5, 0.5, 0.5), 6)) {
+			Material mat = block.getType();
 
-        _killstreakManager.unregister();
-    }
+			//teleporter block?
+			if (mat == Material.ACACIA_LOG)
+				continue;
 
-    @EventHandler
-    public void onGameStart(GameStateEvent event) {
-        if (event.getState() != GameState.Live)
-            return;
+			if (UtilBlock.solid(mat))
+				block.setType(Material.COAL_BLOCK);
+			else if (mat.name().contains("SLAB") || mat.name().contains("STEP")) {
+				block.setType(Material.BLACKSTONE_SLAB);
+			}
+		}
 
-        _lastDeath = System.currentTimeMillis();
+		if (teamBomb.isOwned())
+			Announce(teamBomb.getTeam().getColoring() + teamBomb.getTeam().getName() + "'s " + C.Gold + "bomb exploded!");
+		else
+			Announce(teamBomb.getTeam().getColoring() + teamBomb.getTeam().getName() + "'s " + C.Gold
+					+ "nuke exploded! Everyone but them annihilated!");
 
-        if (UtilMath.r(5) == 0)
-            setOption(GameOption.TIME_OF_WORLD, 15000L);
+		setOption(GameOption.DEATH_MESSAGES, false);
 
-        for (Player player : UtilPlayer.getPlayers()) {
-            GameTeam team = getTeam(player);
+		for (Player player : (teamBomb.isOwned() ? teamBomb.getTeam().getPlayers(true)
+				: getPlayers(true).stream().filter((player) -> !teamBomb.getTeam().isInTeam(player))
+				.collect(Collectors.toList()))) {
+			getDamageManager().newDamage(player, BOMB_EXPLODE, 0);
+		}
 
-            player.sendMessage(C.Gold + "You are in " + team.getColoring() + team.getName());
-        }
+		setOption(GameOption.DEATH_MESSAGES, true);
+	}
 
-        for (GameTeam team : getTeams()) {
-            Announce(C.Gold + "There are " + team.getPlayers().size() + " player" + (team.getPlayers().size() == 1 ? "" : "s")
-                    + " in " + team.getColoring() + team.getName());
-        }
-    }
+	@EventHandler
+	public void onGameEnd(GameStateEvent event) {
+		if (event.getState() != GameState.End && event.getState() != GameState.Dead)
+			return;
 
-    @EventHandler
-    public void onKillstreak(KillstreakEvent killstreakEvent) {
-        _killstreakManager.onKillstreak(killstreakEvent);
-    }
+		_killstreakManager.unregister();
+	}
 
-    @EventHandler
-    public void onPoison(TimeEvent event) {
-        if (event.getType() != TimeType.SEC) {
-            return;
-        }
+	@EventHandler
+	public void onGameStart(GameStateEvent event) {
+		if (event.getState() != GameState.Live)
+			return;
 
-        if (!isLive()) {
-            return;
-        }
+		_lastDeath = System.currentTimeMillis();
 
-        if (_poisonStage == 0 && !UtilTime.elasped(getStateChanged(), _deathTimer)) {
-            if (System.currentTimeMillis() - _lastDeath > 90000) {
-                _deathTimer -= 3000;
-            }
-        }
+		if (UtilMath.r(5) == 0)
+			setOption(GameOption.TIME_OF_WORLD, 15000L);
 
-        if (_poisonStage == 0 && UtilTime.elasped(getStateChanged(), _deathTimer)) {
-            _poisonStage++;
+		for (Player player : UtilPlayer.getPlayers()) {
+			GameTeam team = getTeam(player);
 
-            Announce(C.Red + "One minute until players start dying!");
+			player.sendMessage(C.Gold + "You are in " + team.getColoring() + team.getName());
+		}
 
-            _deathTimer = System.currentTimeMillis() - getStateChanged();
-        } else if (_poisonStage >= 1 && isEndGame()) {
-            if (_poisonStage == 1) {
-                _poisonStage++;
+		for (GameTeam team : getTeams()) {
+			Announce(C.Gold + "There are " + team.getPlayers().size() + " player" + (team.getPlayers().size() == 1 ? "" : "s")
+					+ " in " + team.getColoring() + team.getName());
+		}
+	}
 
-                Announce(C.Red + "Don't say I didn't warn you!");
+	@EventHandler
+	public void onKillstreak(KillstreakEvent killstreakEvent) {
+		_killstreakManager.onKillstreak(killstreakEvent);
+	}
 
-                for (Player player : getPlayers(true)) {
-                    UtilInv.remove(player, Material.GOLDEN_APPLE);
-                    UtilInv.remove(player, Material.COOKED_BEEF);
-                }
-            }
+	@EventHandler
+	public void onPoison(TimeEvent event) {
+		if (event.getType() != TimeType.SEC) {
+			return;
+		}
 
-            ArrayList<GameTeam> teams = new ArrayList<GameTeam>(getTeams());
+		if (!isLive()) {
+			return;
+		}
 
-            Collections.shuffle(teams);
+		if (_poisonStage == 0 && !UtilTime.elasped(getStateChanged(), _deathTimer)) {
+			if (System.currentTimeMillis() - _lastDeath > 90000) {
+				_deathTimer -= 3000;
+			}
+		}
 
-            for (GameTeam team : teams) {
-                for (Player player : team.getPlayers(true)) {
-                    double most = 0;
+		if (_poisonStage == 0 && UtilTime.elasped(getStateChanged(), _deathTimer)) {
+			_poisonStage++;
 
-                    double extraDamage = Math.max(0, ((System.currentTimeMillis() - getStateChanged()) - (60000 * 11)) / 120000D)
-                            + 0.75;
+			Announce(C.Red + "One minute until players start dying!");
 
-                    for (TeamBomb bomb : getBombs()) {
-                        if (bomb.getTeam() != team || !bomb.isOwned()) {
-                            continue;
-                        }
+			_deathTimer = System.currentTimeMillis() - getStateChanged();
+		} else if (_poisonStage >= 1 && isEndGame()) {
+			if (_poisonStage == 1) {
+				_poisonStage++;
 
-                        double healthToTake = extraDamage;
+				Announce(C.Red + "Don't say I didn't warn you!");
 
-                        if (bomb.getBlock().getLocation().add(0.5, 0.5, 0.5).distance(player.getLocation()) < 15) {
-                            healthToTake += UtilMath.rr(1);
-                        } else {
-                            healthToTake += UtilMath.rr(0.5);
-                        }
+				for (Player player : getPlayers(true)) {
+					UtilInv.remove(player, Material.GOLDEN_APPLE);
+					UtilInv.remove(player, Material.COOKED_BEEF);
+				}
+			}
 
-                        if (healthToTake <= most)
-                            continue;
+			ArrayList<GameTeam> teams = new ArrayList<GameTeam>(getTeams());
 
-                        most = healthToTake;
-                    }
+			Collections.shuffle(teams);
 
-                    most *= Math.max(player.getMaxHealth(), 20) / 20;
+			for (GameTeam team : teams) {
+				for (Player player : team.getPlayers(true)) {
+					double most = 0;
+
+					double extraDamage = Math.max(0, ((System.currentTimeMillis() - getStateChanged()) - (60000 * 11)) / 120000D)
+							+ 0.75;
+
+					for (TeamBomb bomb : getBombs()) {
+						if (bomb.getTeam() != team || !bomb.isOwned()) {
+							continue;
+						}
+
+						double healthToTake = extraDamage;
+
+						if (bomb.getBlock().getLocation().add(0.5, 0.5, 0.5).distance(player.getLocation()) < 15) {
+							healthToTake += UtilMath.rr(1);
+						} else {
+							healthToTake += UtilMath.rr(0.5);
+						}
+
+						if (healthToTake <= most)
+							continue;
+
+						most = healthToTake;
+					}
+
+					most *= Math.max(player.getMaxHealth(), 20) / 20;
+
+					getManager().getDamage().newDamage(player, END_OF_GAME, most);
+
+					player.setNoDamageTicks(0);
+				}
+			}
+		}
+	}
+
+	@EventHandler
+	public void onScoreboardDraw(TimeEvent event) {
+		if (event.getType() != TimeType.TICK)
+			return;
+
+		if (getState().isPreGame())
+			return;
+
+		drawScoreboard();
+	}
+
+	@EventHandler
+	public void onTeamDeath(TeamDeathEvent event) {
+		GameTeam team = event.getTeam();
+		Announce(team.getColoring() + team.getName() + C.Gold + " was defeated!");
+
+		Iterator<TeamBomb> itel = getBombs().iterator();
 
-                    getManager().getDamage().newDamage(player, END_OF_GAME, most);
-                    
-                    player.setNoDamageTicks(0);
-                }
-            }
-        }
-    }
+		while (itel.hasNext()) {
+			TeamBomb bomb = itel.next();
+
+			if (bomb.getTeam() != event.getTeam())
+				continue;
+
+			if (!bomb.isOwned()) {
+				bomb.restore();
+				continue;
+			}
+
+			bomb.remove();
+			itel.remove();
+		}
+	}
+
+	@EventHandler
+	public void onTeamsCreation(GameStateEvent event) {
+		if (event.getState() != GameState.Live)
+			return;
+
+		_killstreakManager.register();
+		checkLastMan();
+	}
 
-    @EventHandler
-    public void onScoreboardDraw(TimeEvent event) {
-        if (event.getType() != TimeType.TICK)
-            return;
-
-        if (getState().isPreGame())
-            return;
-
-        drawScoreboard();
-    }
-
-    @EventHandler
-    public void onTeamDeath(TeamDeathEvent event) {
-        GameTeam team = event.getTeam();
-        Announce(team.getColoring() + team.getName() + C.Gold + " was defeated!");
-
-        Iterator<TeamBomb> itel = getBombs().iterator();
-
-        while (itel.hasNext()) {
-            TeamBomb bomb = itel.next();
-
-            if (bomb.getTeam() != event.getTeam())
-                continue;
-
-            if (!bomb.isOwned()) {
-                bomb.restore();
-                continue;
-            }
-
-            bomb.remove();
-            itel.remove();
-        }
-    }
-
-    @EventHandler
-    public void onTeamsCreation(GameStateEvent event) {
-        if (event.getState() != GameState.Live)
-            return;
-
-        _killstreakManager.register();
-        checkLastMan();
-    }
-
-    @EventHandler
-    public void registerBombs(GameStateEvent event) {
-        if (event.getState() != GameState.MapLoaded)
-            return;
-
-        for (TeamSettings settings : TeamSettings.values()) {
-            ArrayList<Block> bombs = getData().getCustomBlocks(settings.name() + " Bombs");
-
-            for (Block b : bombs) {
-                TeamBomb bomb = new TeamBomb(this, getTeam(settings), b);
-
-                _bombs.add(bomb);
-
-                bomb.drawHologram();
-            }
-        }
-    }
-
-    public void sendTimeProgress(Player player) {
-        player.sendMessage(C.Gray + "The game has been in progress for " + UtilNumber.getTime(getGameTime(), TimeUnit.SECONDS));
-
-        if (!isEndGame()) {
-            player.sendMessage(C.Gray + "Poison will begin in " + UtilNumber
-                    .getTime((getStateChanged() + _deathTimer + 60000) - System.currentTimeMillis(), TimeUnit.MILLISECONDS));
-        }
-    }
-
-    @Override
-    public void setupScoreboards() {
-        getScoreboard().discardScoreboards();
-
-        FakeScoreboard main = getScoreboard().getMainScoreboard();
-
-        FakeScoreboard specs = getScoreboard().createScoreboard("Spectators", (player) -> getTeam(player) == null);
-
-        for (GameTeam observerTeam : getTeams()) {
-            FakeTeam realTeam = specs.createTeam(observerTeam.getName());
-            realTeam.setPrefix(observerTeam.getColoring());
-            
-            for (Player player : observerTeam.getPlayers()) {
-                realTeam.addPlayer(player);
-            }
-        }
-
-        main.addChild(specs);
-
-        FakeTeam specTeam = specs.createTeam("Spectators");
-        specTeam.setPrefix(C.Gray);
-
-        // Create all the teams
-        for (GameTeam observerTeam : getTeams()) {
-            FakeScoreboard board = getScoreboard().createScoreboard(observerTeam.getName(), new Predicate<Player>() {
-                @Override
-                public boolean apply(Player input) {
-                    return observerTeam.isInTeam(input);
-                }
-            });
-
-            main.addChild(board);
-
-            ArrayList<Player> spies = new ArrayList<Player>();
-
-            for (GameTeam renderedTeam : getTeams()) {
-                FakeTeam realTeam = board.createTeam(renderedTeam.getName());
-                FakeTeam ghostTeam = board.createTeam(renderedTeam.getName() + "Invis");
-                FakeTeam spyTeam = board.createTeam(renderedTeam.getName() + "Spy");
-
-                realTeam.setPrefix(renderedTeam.getColoring());
-                spyTeam.setPrefix(renderedTeam.getColoring());
-                ghostTeam.setPrefix(renderedTeam.getColoring());
-
-                ghostTeam.setOption(Option.NAME_TAG_VISIBILITY, OptionStatus.NEVER);
-
-                realTeam.setSeeInvisiblePlayers(true);
-
-                for (Player player : renderedTeam.getPlayers()) {
-                    if (observerTeam == renderedTeam) {
-                        realTeam.addPlayer(player);
-                        continue;
-                    }
-
-                    Kit kit = getKit(player);
-
-                    if (kit instanceof KitSpy) {
-                        spies.add(player);
-                    } else if (kit instanceof KitGhost || kit instanceof KitWraith) {
-                        ghostTeam.addPlayer(player);
-                    } else {
-                        realTeam.addPlayer(player);
-                    }
-
-                    realTeam.addPlayer(player.getName());
-                }
-            }
-
-            for (Player player : spies) {
-                board.getTeam(observerTeam.getName() + "Spy").addPlayer(player);
-            }
-        }
-
-        main.setSidebarTitle(C.Gold + "Teams");
-    }
+	@EventHandler
+	public void registerGoals(GameStateEvent event) {
+		if (event.getState() != GameState.MapLoaded)
+			return;
+
+		//check if it's bombs or hills first
+		//should be null if nothing returned (getting from a hashmap)
+		ArrayList<String> hills = getData().getData("Hills1");
+		if(hills.size() > 0)
+		{
+			_mapType = SNDMapType.KOTH;
+			
+			for(String hillKey : hills)
+			{
+				//need to be ordered XZ corner, then -XZ corner, in the config.yml
+				ArrayList<Location> hillLocs = getData().getCustomLocs(hillKey);
+				//add 1 to XZ corner to bump it up to edge of blocks
+				int number = Integer.parseInt(hillKey.replaceAll("Hills", ""));
+				Hill hill = new Hill(number, hillLocs.get(0).add(1, 0, 1), hillLocs.get(1));
+				_hills.add(hill);
+				ArcadeManager.getManager().getPlugin().getLogger().info("Added Hill: " + hill.toString());
+				hill.startHologram();
+			}
+		}
+		// else it's snd
+		else
+		{
+			_mapType = SNDMapType.SND;
+			for (TeamSettings settings : TeamSettings.values()) {
+				//list of blocks listed under "Custom" with keys of TeamSettings name + " Bombs"
+				ArrayList<Block> bombs = getData().getCustomBlocks(settings.name() + " Bombs");
+
+				for (Block b : bombs) {
+					TeamBomb bomb = new TeamBomb(this, getTeam(settings), b);
+
+					_bombs.add(bomb);
+
+					bomb.drawHologram();
+				}
+			}
+		}
+	}
+
+	public void sendTimeProgress(Player player) {
+		player.sendMessage(C.Gray + "The game has been in progress for " + UtilNumber.getTime(getGameTime(), TimeUnit.SECONDS));
+
+		if (!isEndGame()) {
+			player.sendMessage(C.Gray + "Poison will begin in " + UtilNumber
+					.getTime((getStateChanged() + _deathTimer + 60000) - System.currentTimeMillis(), TimeUnit.MILLISECONDS));
+		}
+	}
+
+	@Override
+	public void setupScoreboards() {
+		getScoreboard().discardScoreboards();
+
+		FakeScoreboard main = getScoreboard().getMainScoreboard();
+
+		FakeScoreboard specs = getScoreboard().createScoreboard("Spectators", (player) -> getTeam(player) == null);
+
+		for (GameTeam observerTeam : getTeams()) {
+			FakeTeam realTeam = specs.createTeam(observerTeam.getName());
+			realTeam.setPrefix(observerTeam.getColoring());
+
+			for (Player player : observerTeam.getPlayers()) {
+				realTeam.addPlayer(player);
+			}
+		}
+
+		main.addChild(specs);
+
+		FakeTeam specTeam = specs.createTeam("Spectators");
+		specTeam.setPrefix(C.Gray);
+
+		// Create all the teams
+		for (GameTeam observerTeam : getTeams()) {
+			FakeScoreboard board = getScoreboard().createScoreboard(observerTeam.getName(), new Predicate<Player>() {
+				@Override
+				public boolean apply(Player input) {
+					return observerTeam.isInTeam(input);
+				}
+			});
+
+			main.addChild(board);
+
+			ArrayList<Player> spies = new ArrayList<Player>();
+
+			for (GameTeam renderedTeam : getTeams()) {
+				FakeTeam realTeam = board.createTeam(renderedTeam.getName());
+				FakeTeam ghostTeam = board.createTeam(renderedTeam.getName() + "Invis");
+				FakeTeam spyTeam = board.createTeam(renderedTeam.getName() + "Spy");
+
+				realTeam.setPrefix(renderedTeam.getColoring());
+				spyTeam.setPrefix(renderedTeam.getColoring());
+				ghostTeam.setPrefix(renderedTeam.getColoring());
+
+				ghostTeam.setOption(Option.NAME_TAG_VISIBILITY, OptionStatus.NEVER);
+
+				realTeam.setSeeInvisiblePlayers(true);
+
+				for (Player player : renderedTeam.getPlayers()) {
+					if (observerTeam == renderedTeam) {
+						realTeam.addPlayer(player);
+						continue;
+					}
+
+					Kit kit = getKit(player);
+
+					if (kit instanceof KitSpy) {
+						spies.add(player);
+					} else if (kit instanceof KitGhost || kit instanceof KitWraith) {
+						ghostTeam.addPlayer(player);
+					} else {
+						realTeam.addPlayer(player);
+					}
+
+					realTeam.addPlayer(player.getName());
+				}
+			}
+
+			for (Player player : spies) {
+				board.getTeam(observerTeam.getName() + "Spy").addPlayer(player);
+			}
+		}
+
+		main.setSidebarTitle(C.Gold + "Teams");
+	}
 }

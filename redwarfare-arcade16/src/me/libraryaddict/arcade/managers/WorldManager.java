@@ -160,7 +160,7 @@ public class WorldManager extends MiniPlugin {
                 }
 
                 if (_lastMap.get(i).equals(name)) {
-                    System.out.println("Remove selection " + name);
+                    //System.out.println("Remove selection " + name);
                     itel.remove();
                     break;
                 }
@@ -169,7 +169,7 @@ public class WorldManager extends MiniPlugin {
 
         while (_mapVoting.size() > 3) {
             MapInfo info = _mapVoting.remove(0);
-            System.out.println("Can't vote for " + info.getData().getName());
+            //System.out.println("Can't vote for " + info.getData().getName());
         }
 
         for (MapInfo data : _mapVoting) {
