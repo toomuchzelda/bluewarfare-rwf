@@ -18,55 +18,55 @@ import me.libraryaddict.core.utils.UtilError;
 public class BungeeSettings
 {
 	//filename of server icon to use in /plugins/
-    private String _favIcon = "";
-    private String _footer = C.Red + "play.redwarfare.com";
-    private String _header = C.Red + "Red Warfare";
-    private int _maxPlayers = 250;
-    private ArrayList<String> _motd = new ArrayList<String>();
-    private ArrayList<String> _players = new ArrayList<String>();
-    private String _protocol = "Starting up";
-    private int _throttle = 0;
-    private int _totalPlayers = 500;
-    private boolean _whitelist;
-    private BufferedImage _img = null;
+	private String _favIcon = "";
+	private String _footer = C.Red + "play.redwarfare.com";
+	private String _header = C.Red + "Red Warfare";
+	private int _maxPlayers = 250;
+	private ArrayList<String> _motd = new ArrayList<String>();
+	private ArrayList<String> _players = new ArrayList<String>();
+	private String _protocol = "Starting up";
+	private int _throttle = 0;
+	private int _totalPlayers = 500;
+	private boolean _whitelist;
+	private BufferedImage _img = null;
 
-    public BungeeSettings()
-    {
-    }
+	public BungeeSettings()
+	{
+	}
 
-    public BungeeSettings(ResultSet rs) throws NumberFormatException, SQLException
-    {
-        rs.beforeFirst();
+	public BungeeSettings(ResultSet rs) throws NumberFormatException, SQLException
+	{
+		rs.beforeFirst();
 
-        while (rs.next())
-        {
-            String key = rs.getString("type");
-            String value = rs.getString("value");
+		while (rs.next())
+		{
+			String key = rs.getString("type");
+			String value = rs.getString("value");
 
-            if (key.equals("max_players"))
-            {
-                _maxPlayers = Integer.parseInt(value);
-            }
-            else if (key.equals("total_players"))
-            {
-                _totalPlayers = Integer.parseInt(value);
-            }
-            else if (key.equals("throttle"))
-            {
-                _throttle = Integer.parseInt(value);
-            }
-            else if (key.equals("protocol"))
-            {
-                _protocol = value;
-            }
-            else if (key.equals("motd"))
-            {
-                _motd.add(value);
-            }
-            else if (key.equals("favicon"))
-            {
-                _favIcon = value;
-              /*  if(!_favIcon.isEmpty())
+			if (key.equals("max_players"))
+			{
+				_maxPlayers = Integer.parseInt(value);
+			}
+			else if (key.equals("total_players"))
+			{
+				_totalPlayers = Integer.parseInt(value);
+			}
+			else if (key.equals("throttle"))
+			{
+				_throttle = Integer.parseInt(value);
+			}
+			else if (key.equals("protocol"))
+			{
+				_protocol = value;
+			}
+			else if (key.equals("motd"))
+			{
+				_motd.add(value);
+			}
+			else if (key.equals("favicon"))
+			{
+				_favIcon = value;
+				/*  if(!_favIcon.isEmpty())
                 {
 	                try {
 	                    _img = ImageIO.read(new File("./plugins/" + _favIcon));
@@ -74,143 +74,145 @@ public class BungeeSettings
 	                    System.out.println("failed to set favIcon! " + e.getMessage());
 	                }
                 }*/
-            }
-            else if (key.equals("player"))
-            {
-                _players.add(value);
-            }
-            else if (key.equals("footer"))
-            {
-                _footer = value;
-            }
-            else if (key.equals("header"))
-            {
-                _header = value;
-            }
-            else if (key.equals("whitelist"))
-            {
-                _whitelist = Boolean.parseBoolean(value);
-            }
-            
-            try {
-            _img = ImageIO.read(new File("./plugins/server-icon.png"));
-            }
-            catch(IllegalArgumentException e) {
-            	UtilError.handle(e);
-            }
-            catch(IOException e) {
-            	UtilError.handle(e);
-            }
-        }
-    }
+			}
+			else if (key.equals("player"))
+			{
+				_players.add(value);
+			}
+			else if (key.equals("footer"))
+			{
+				_footer = value;
+			}
+			else if (key.equals("header"))
+			{
+				_header = value;
+			}
+			else if (key.equals("whitelist"))
+			{
+				_whitelist = Boolean.parseBoolean(value);
+			}
 
-    public String getFavIcon()
-    {
-        return _favIcon;
-    }
+			try {
+				_img = ImageIO.read(new File("./plugins/server-icon.png"));
+				
+			}
+			catch(Exception e) {
+				//UtilError.handle(e);
+				System.err.println("Could not read image: " + e.getMessage() + ". Favicon set to null");
+				_img = null;
+			}
+		}
+	}
 
-    public String getFooter()
-    {
-        return _footer;
-    }
+	public String getFavIcon()
+	{
+		return _favIcon;
+	}
 
-    public String getHeader()
-    {
-        return _header;
-    }
+	public String getFooter()
+	{
+		return _footer;
+	}
 
-    public int getMaxPlayers()
-    {
-        return _maxPlayers;
-    }
+	public String getHeader()
+	{
+		return _header;
+	}
 
-    public ArrayList<String> getMotd()
-    {
-        return _motd;
-    }
+	public int getMaxPlayers()
+	{
+		return _maxPlayers;
+	}
 
-    public ArrayList<String> getPlayers()
-    {
-        return _players;
-    }
+	public ArrayList<String> getMotd()
+	{
+		return _motd;
+	}
 
-    public String getProtocol()
-    {
-        return _protocol;
-    }
+	public ArrayList<String> getPlayers()
+	{
+		return _players;
+	}
 
-    public int getThrottle()
-    {
-        return _throttle;
-    }
+	public String getProtocol()
+	{
+		return _protocol;
+	}
 
-    public int getTotalPlayers()
-    {
-        return _totalPlayers;
-    }
-    
-    public BufferedImage getImgFavIcon()
-    {
-    	return _img;
-    }
+	public int getThrottle()
+	{
+		return _throttle;
+	}
 
-    public boolean isWhitelist()
-    {
-        return _whitelist;
-    }
+	public int getTotalPlayers()
+	{
+		return _totalPlayers;
+	}
 
-    public void setFooter(String value)
-    {
-        _footer = value;
-    }
+	public BufferedImage getImgFavIcon()
+	{
+		return _img;
+	}
 
-    public void setHeader(String value)
-    {
-        _header = value;
-    }
+	public boolean isWhitelist()
+	{
+		return _whitelist;
+	}
 
-    public void setMaxPlayers(int maxPlayers)
-    {
-        _maxPlayers = maxPlayers;
-    }
+	public void setFooter(String value)
+	{
+		_footer = value;
+	}
 
-    public void setMotd(String value)
-    {
-        _motd.clear();
-        _motd.add(value);
-    }
+	public void setHeader(String value)
+	{
+		_header = value;
+	}
 
-    public void setProtocol(String newProtocol)
-    {
-        _protocol = newProtocol;
-    }
+	public void setMaxPlayers(int maxPlayers)
+	{
+		_maxPlayers = maxPlayers;
+	}
 
-    public void setThrottle(int throttle)
-    {
-        _throttle = throttle;
-    }
+	public void setMotd(String value)
+	{
+		_motd.clear();
+		_motd.add(value);
+	}
 
-    public void setTotalPlayers(int totalPlayers)
-    {
-        _totalPlayers = totalPlayers;
-    }
+	public void setProtocol(String newProtocol)
+	{
+		_protocol = newProtocol;
+	}
 
-    public void setWhitelist(boolean whitelist)
-    {
-        _whitelist = whitelist;
-    }
-    
-    //unused
-    public void setFavicon(String favicon)
-    {
-    	_favIcon = favicon;
-    	if(!_favIcon.isEmpty())
-    	{
-	    	try {
-	            _img = ImageIO.read(new File("./plugins/" + _favIcon));
-	        } catch (IOException e) {
-	            System.out.println("failed to set favIcon! " + e.getMessage());
-	        }
-    	}
-    }
+	public void setThrottle(int throttle)
+	{
+		_throttle = throttle;
+	}
+
+	public void setTotalPlayers(int totalPlayers)
+	{
+		_totalPlayers = totalPlayers;
+	}
+
+	public void setWhitelist(boolean whitelist)
+	{
+		_whitelist = whitelist;
+	}
+
+	//unused
+	/*
+	public void setFavicon(String favicon)
+	{
+		_favIcon = favicon;
+		if(!_favIcon.isEmpty())
+		{
+			try {
+				_img = ImageIO.read(new File("./plugins/" + _favIcon));
+			} catch (IOException e) {
+				System.out.println("failed to set favIcon! " + e.getMessage());
+			}
+		}
+	}
+	*/
 }

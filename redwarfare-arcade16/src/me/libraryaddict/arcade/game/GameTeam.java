@@ -216,4 +216,38 @@ public class GameTeam {
         _playersAndTimesDied.put(player.getUniqueId(), getTimesDied(player));
         _deadAndWhen.put(player.getUniqueId(), System.currentTimeMillis());
     }
+    
+    public void respawn(Player player, Game game)
+    {
+    	if (!isAlive(player))
+            return;
+
+        //UtilPlayer.setSpectator(player);
+    	/*
+        new BukkitRunnable() {
+            public void run() {
+                player.getInventory().addItem(_game.getManager().getGameManager().getCompass());
+
+                if (_game.getKits().length > 1) {
+                    player.getInventory().addItem(_game.getManager().getGameManager().getKitLayout());
+                }
+
+                player.getInventory().setItem(8, _game.getManager().getGameManager().getNextGame());
+            }
+        }.runTaskLater(_game.getManager().getPlugin(), 20);
+        */
+
+        new BukkitRunnable() {
+            public void run() {
+                //UtilPlayer.tele(player, _game.getRandomSpectatorSpawn());
+            	//so they don't take fall damage when respawning if a void kill
+            	player.setFallDistance(0);
+                UtilPlayer.tele(player, game.getTeam(player).getSpawn());
+                player.setHealth(player.getMaxHealth());
+            }
+        }.runTask(_game.getManager().getPlugin());
+
+        _playersAndTimesDied.put(player.getUniqueId(), getTimesDied(player));
+        //_deadAndWhen.put(player.getUniqueId(), System.currentTimeMillis());
+    }
 }

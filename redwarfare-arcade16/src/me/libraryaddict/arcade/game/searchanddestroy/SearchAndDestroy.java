@@ -329,6 +329,8 @@ public class SearchAndDestroy extends TeamGame {
 
         setOption(GameOption.DEATH_MESSAGES, false);
 
+        teamBomb.getTeam().setDead(true);
+        
         for (Player player : (teamBomb.isOwned() ? teamBomb.getTeam().getPlayers(true)
                 : getPlayers(true).stream().filter((player) -> !teamBomb.getTeam().isInTeam(player))
                 .collect(Collectors.toList()))) {

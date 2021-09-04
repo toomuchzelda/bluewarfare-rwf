@@ -47,7 +47,9 @@ public class DeathManager extends MiniPlugin {
 
         GameTeam team = game.getTeam(player);
 
-        team.setDead(player);
+        //team.setDead(player);
+        team.respawn(player, game);
+        
 
         game.checkGameState();
     }

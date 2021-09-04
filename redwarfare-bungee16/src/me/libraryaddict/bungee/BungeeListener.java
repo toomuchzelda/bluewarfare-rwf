@@ -147,11 +147,13 @@ public class BungeeListener implements Listener {
 
         ping.setPlayers(players);
         ping.setVersion(protocol);
+        //ping.setFavicon(getBungee().getFavicon());
 
+        //TODO: cache the Favicon so it's not created on every ping
         if(settings.getImgFavIcon() != null) {
         	ping.setFavicon(Favicon.create(settings.getImgFavIcon()));
         }
-
+        
         String motd = UtilMath.r(getSettings().getMotd());
 
         if (motd == null)

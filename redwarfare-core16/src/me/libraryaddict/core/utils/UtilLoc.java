@@ -502,7 +502,7 @@ public class UtilLoc {
                 return false;
             }
         }
-
+        
         return true;
     }
 
