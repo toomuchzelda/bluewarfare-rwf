@@ -18,6 +18,7 @@ public class Hill
 	private Location _oppositeCorner;
 	private Hologram _hologram;
 	private boolean _isActiveHill;
+	//maybe replaceable with a HashMap
 	private ArrayList<Player> _standingPlayers;
 	//area to stand within to trigger
 	private BoundingBox _boundingBox;
