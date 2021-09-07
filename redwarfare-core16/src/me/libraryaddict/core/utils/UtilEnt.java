@@ -2,7 +2,9 @@ package me.libraryaddict.core.utils;
 
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
+import com.comphenix.protocol.PacketType.Play.Server;
 import com.comphenix.protocol.events.PacketContainer;
+import com.comphenix.protocol.injector.PacketConstructor;
 import com.comphenix.protocol.wrappers.EnumWrappers;
 import com.comphenix.protocol.wrappers.WrappedDataWatcher;
 import com.comphenix.protocol.wrappers.WrappedDataWatcher.WrappedDataWatcherObject;
@@ -30,6 +32,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class UtilEnt {
+	
     public static PacketContainer getInvisPacket(Entity entity) {
         return getInvisPacket(entity.getEntityId(), new WrappedDataWatcher(entity));
     }
@@ -102,16 +105,21 @@ public class UtilEnt {
         return container;
     }
     
-    public static PacketContainer getMetadataPacket(Entity entity)
-    {
-    	//https://www.spigotmc.org/threads/entitymetadata-packet-via-protocollib-modifies-entity-on-server.512100/
-    	WrappedDataWatcher metadata = WrappedDataWatcher.getEntityWatcher(entity);
-    	PacketContainer packet = new PacketContainer(PacketType.Play.Server.ENTITY_METADATA);
-    	packet.getIntegers().write(0, entity.getEntityId());
-    	packet.getWatchableCollectionModifier().write(0, metadata.getWatchableObjects());
-    	
-    	return packet;
-    }
+    //get a entity metadata packet of all the entity's current metadata
+//    public static PacketContainer getMetadataPacket(Entity entity)
+//    {
+//    	//https://www.spigotmc.org/threads/entitymetadata-packet-via-protocollib-modifies-entity-on-server.512100/
+//    	/*WrappedDataWatcher metadata = WrappedDataWatcher.getEntityWatcher(entity);
+//    	PacketContainer packet = new PacketContainer(PacketType.Play.Server.ENTITY_METADATA);
+//    	packet.getIntegers().write(0, entity.getEntityId());
+//    	packet.getWatchableCollectionModifier().write(0, metadata.getWatchableObjects());
+//    	
+//    	return packet;*/
+//    	return ProtocolLibrary.getProtocolManager()
+//                .createPacketConstructor(Server.ENTITY_METADATA, entity.getEntityId(),
+//                        WrappedDataWatcher.getEntityWatcher(entity), true)
+//                .createPacket(entity.getEntityId(), WrappedDataWatcher.getEntityWatcher(entity), true);
+//    }
 
     public static double getAbsorptionHearts(Entity entity) {
         if (!(entity instanceof LivingEntity))
