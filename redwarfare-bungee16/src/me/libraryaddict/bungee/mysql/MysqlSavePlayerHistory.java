@@ -18,7 +18,8 @@ public class MysqlSavePlayerHistory extends DatabaseOperation {
 
             PreparedStatement stmt = con
                     .prepareStatement("INSERT INTO playerinfo (uuid, type, info, first_used, last_used) VALUES ('" + uuid + "',"
-                            + KeyMappings.getKey("Name") + ",?,?,?) ON DUPLICATE KEY UPDATE last_used = ?;");
+                            + KeyMappings.getKey("Name") + ",?,?,?) ON DUPLICATE KEY UPDATE last_used = ?;",
+                            ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
 
             stmt.setString(1, name);
             stmt.setTimestamp(2, new Timestamp(System.currentTimeMillis()));
@@ -28,7 +29,8 @@ public class MysqlSavePlayerHistory extends DatabaseOperation {
             stmt.execute();
 
             stmt = con.prepareStatement("INSERT INTO playerinfo (uuid, type, info, first_used, last_used) VALUES ('" + uuid + "',"
-                    + KeyMappings.getKey("IP") + ",?,?,?) ON DUPLICATE KEY UPDATE last_used = ?;");
+                    + KeyMappings.getKey("IP") + ",?,?,?) ON DUPLICATE KEY UPDATE last_used = ?;",
+                    ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
 
             stmt.setString(1, ip);
             stmt.setTimestamp(2, new Timestamp(System.currentTimeMillis()));
@@ -39,6 +41,7 @@ public class MysqlSavePlayerHistory extends DatabaseOperation {
 
             ResultSet rs = stmt.executeQuery("SELECT id FROM playerinfo WHERE uuid = '" + uuid + "' AND type = "
                     + KeyMappings.getKey("IP") + " ORDER BY last_used DESC LIMIT 5, 1000");
+            
 
             rs.beforeFirst();
 
