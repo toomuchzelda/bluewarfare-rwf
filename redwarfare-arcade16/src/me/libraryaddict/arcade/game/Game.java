@@ -527,6 +527,16 @@ public abstract class Game implements Listener {
 			.makeScore(DisplaySlot.PLAYER_LIST, player.getName(), newEvent.getKillstreak());
 		}
 	}
+	
+	public void removeKillstreak(Player player)
+	{
+		_killstreaks.put(player.getUniqueId(), 0d);
+		if(getOption(GameOption.TABLIST_KILLS))
+		{
+			getScoreboard().getMainScoreboard()
+			.makeScore(DisplaySlot.PLAYER_LIST, player.getName(), 0);
+		}
+	}
 
 	public boolean isAlive(Entity entity) {
 		if (entity == null)
