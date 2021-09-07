@@ -26,6 +26,7 @@ import me.libraryaddict.core.time.TimeType;
 import me.libraryaddict.core.utils.*;
 import me.libraryaddict.core.utils.UtilParticle.ViewDist;
 import me.libraryaddict.disguise.LibsDisguises;
+import me.libraryaddict.disguise.utilities.DisguiseUtilities;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -587,14 +588,13 @@ public class SearchAndDestroy extends TeamGame {
 					p.setFlying(false);
 					p.setAllowFlight(false);
 			        p.setCollidable(true);
-					UtilPlayer.showToAll(p);
-					UtilPlayer.tele(p, team.getSpawn());
 					
-					//resend metadata packet (needed for ghost invis)
-					for(Player viewer : UtilPlayer.getPerverts(p))
-					{
-						UtilPlayer.sendPacket(viewer, UtilEnt.getMetadataPacket(p));
-					}
+					p.getInventory().remove(getManager().getLobby().getKitSelector());
+					p.getInventory().remove(getManager().getGameManager().getKitLayout());
+					p.getInventory().remove(getManager().getGameManager().getCompass());
+					p.getInventory().remove(getManager().getGameManager().getNextGame());
+					
+					removeKillstreak(p);
 					
 					try {
 	                    getKit(p).applyKit(p);
@@ -602,7 +602,16 @@ public class SearchAndDestroy extends TeamGame {
 	                    UtilError.handle(ex);
 	                }
 					
+					UtilPlayer.showToAll(p);
+					DisguiseUtilities.refreshTrackers(p);
+							
+					UtilPlayer.tele(p, team.getSpawn());
 					team.removeFromDead(p);
+				}
+				else
+				{
+					long seconds = 5 - ((now - diedWhen) / 1000);
+					p.sendTitle(" ", C.Green + "Respawning in " + seconds + " seconds", 0, 3, 0);
 				}
 			}
 		}
