@@ -5,6 +5,8 @@ import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.EnumWrappers;
 import com.comphenix.protocol.wrappers.WrappedDataWatcher;
+import com.comphenix.protocol.wrappers.WrappedDataWatcher.WrappedDataWatcherObject;
+
 import me.libraryaddict.core.Pair;
 import me.libraryaddict.disguise.disguisetypes.MetaIndex;
 import org.bukkit.Bukkit;
@@ -98,6 +100,17 @@ public class UtilEnt {
         container.getSlotStackPairLists().write(0, list);
         
         return container;
+    }
+    
+    public static PacketContainer getMetadataPacket(Entity entity)
+    {
+    	//https://www.spigotmc.org/threads/entitymetadata-packet-via-protocollib-modifies-entity-on-server.512100/
+    	WrappedDataWatcher metadata = WrappedDataWatcher.getEntityWatcher(entity);
+    	PacketContainer packet = new PacketContainer(PacketType.Play.Server.ENTITY_METADATA);
+    	packet.getIntegers().write(0, entity.getEntityId());
+    	packet.getWatchableCollectionModifier().write(0, metadata.getWatchableObjects());
+    	
+    	return packet;
     }
 
     public static double getAbsorptionHearts(Entity entity) {
