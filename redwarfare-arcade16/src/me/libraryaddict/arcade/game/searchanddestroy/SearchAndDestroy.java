@@ -1,5 +1,8 @@
 package me.libraryaddict.arcade.game.searchanddestroy;
 
+import com.comphenix.protocol.ProtocolLib;
+import com.comphenix.protocol.ProtocolLibrary;
+import com.comphenix.protocol.wrappers.WrappedDataWatcher;
 import com.google.common.base.Predicate;
 import me.libraryaddict.arcade.events.DeathEvent;
 import me.libraryaddict.arcade.events.GameStateEvent;
@@ -22,6 +25,7 @@ import me.libraryaddict.core.time.TimeEvent;
 import me.libraryaddict.core.time.TimeType;
 import me.libraryaddict.core.utils.*;
 import me.libraryaddict.core.utils.UtilParticle.ViewDist;
+import me.libraryaddict.disguise.LibsDisguises;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -61,7 +65,7 @@ public class SearchAndDestroy extends TeamGame {
 			.setInstantDeath();
 	private AttackType END_OF_GAME = new AttackType("End of Game", "%Killed% was unable of escape the strings of time")
 			.setIgnoreArmor().setNoKnockback();
-	
+
 	//changed in registerBombs()/registerHills()
 	private SNDMapType _mapType = SNDMapType.SND;
 	private ArrayList<Hill> _hills = new ArrayList<Hill>();
@@ -189,7 +193,7 @@ public class SearchAndDestroy extends TeamGame {
 
 		board.setSidebar(lines);
 	}
-	
+
 	private void drawKothScoreboard()
 	{
 		FakeScoreboard board = getManager().getScoreboard().getMainScoreboard();
@@ -207,12 +211,12 @@ public class SearchAndDestroy extends TeamGame {
 			GameTeam team = itel.next();
 
 			lines.add(team.getColoring() + C.Bold + team.getName());
-					//C.Reset + ": " + team.getPlayers().size() + " players");
+			//C.Reset + ": " + team.getPlayers().size() + " players");
 			int score = _kothScore.get(team);
 			lines.add(team.getColoring() + C.Bold + "Score: " + score);
 			lines.add(team.getPlayers().size() + " players");
-			
-			
+
+
 			//approx. appearance
 			/*
 			 * Team (Bold, coloured in team colour)
@@ -221,38 +225,11 @@ public class SearchAndDestroy extends TeamGame {
 			 * ....repeat for each team
 			 */
 
-			/*for (TeamBomb bomb : getBombs()) {
-				if (!bomb.isOwned() || bomb.getTeam() != team) {
-					continue;
-				}
-
-				if (bomb.isArmed()) {
-					String disarm = bomb.getDisarmStatus();
-
-					if (disarm == null) {
-						lines.add(team.getColoring() + "Bomb " + C.Bold + bomb.getTimeLeft());
-					} else {
-						lines.add(team.getColoring() + disarm + " " + team.getColoring() + C.Bold + bomb.getTimeLeft());
-					}
-				} else {
-					lines.add("Bomb is Safe");
-				}
-			}*/
-
 			if (itel.hasNext())
 				lines.add("");
 		}
-		
-		lines.add(C.Bold + "Active Hill: " + _activeHill.getName());
-		
-		/*while (bombItel.hasNext()) {
-			TeamBomb bomb = bombItel.next();
 
-			if (!bomb.isArmed())
-				lines.add(C.Bold + "Nuke");
-			else
-				lines.add(bomb.getTeam().getColoring() + C.Bold + "Nuke " + bomb.getTimeLeft());
-		}*/
+		lines.add(C.Bold + "Active Hill: " + _activeHill.getName());
 
 		if (lines.size() > 15) {
 			while (lines.contains(""))
@@ -264,7 +241,7 @@ public class SearchAndDestroy extends TeamGame {
 
 		board.setSidebar(lines);
 	}
-	
+
 	public ArrayList<TeamBomb> getBombs() {
 		return _bombs;
 	}
@@ -377,7 +354,7 @@ public class SearchAndDestroy extends TeamGame {
 
 		_lastDeath = System.currentTimeMillis();
 	}
-	
+
 	public void onExplode(TeamBomb teamBomb) {
 		Location loc = teamBomb.getBomb().getLocation();
 
@@ -546,52 +523,92 @@ public class SearchAndDestroy extends TeamGame {
 	{
 		if(_mapType != SNDMapType.KOTH)
 			return;
-		
+
+		if(!isLive())
+			return;
+
 		if(event.getType() != TimeType.TICK)
 			return;
-		
+
 		Logger logger = ArcadeManager.getManager().getPlugin().getLogger();
-		logger.info("koth ticking...");
-		
+		//logger.info("koth ticking...");
+
 		for(Player p : Bukkit.getOnlinePlayers())
 		{
 			if(_activeHill.getBoundingBox().contains(p.getBoundingBox()))
 			{
 				if(!_activeHill.getStandingPlayers().contains(p))
-				{
 					_activeHill.addStandingPlayer(p);
-				}
-				logger.info("player " + p.getName() + " standing inside " + _activeHill.getName());
+				//logger.info("player " + p.getName() + " standing inside " + _activeHill.getName());
 			}
 			else if(_activeHill.getStandingPlayers().contains(p))
-			{
 				_activeHill.removeStandingPlayer(p);
-			}
 		}
-		
-		ArrayList<GameTeam> teamsOnPoint = new ArrayList<>();
-		for(Player p : _activeHill.getStandingPlayers())
+
+		//logger.info(_activeHill.getStandingPlayers().toString());
+		//ArrayList<GameTeam> teamsOnPoint = new ArrayList<>();
+		GameTeam teamOnPoint = null;
+		if(_activeHill.getStandingPlayers().size() > 0)
 		{
-			teamsOnPoint.add(getTeam(p));
-			for(GameTeam team : teamsOnPoint)
+			for(Player p : _activeHill.getStandingPlayers())
 			{
-				//multiple teams on point, reward no points
-				if(getTeam(p) != team)
-				{
-					logger.info("more than 1 team standing, cancelled");
+				GameTeam team = getTeam(p);
+				//get first player's team
+				if(teamOnPoint == null)
+					teamOnPoint = team;
+				//more than one team on point, reward no points
+				else if(team != teamOnPoint)
 					return;
+			}
+	
+			int score = _kothScore.get(teamOnPoint);
+			score++;
+			_kothScore.put(teamOnPoint, score);
+			//logger.info("gave team " + teamOnPoint.getName() + " one point.\nend of tick");
+		}
+	}
+	
+	//for players waiting to respawn
+	@EventHandler
+	public void onKothDeadTick(TimeEvent event)
+	{
+		if(event.getType() != TimeType.TICK)
+			return;
+		
+		for(GameTeam team : getTeams())
+		{
+			ArrayList<Player> deadList = team.getPlayers(false);
+			for(Player p : deadList)
+			{
+				long diedWhen = team.getDiedTime(p);
+				long now = System.currentTimeMillis();
+				if(now - diedWhen > 5000)
+				{
+					p.setFlying(false);
+					p.setAllowFlight(false);
+			        p.setCollidable(true);
+					UtilPlayer.showToAll(p);
+					UtilPlayer.tele(p, team.getSpawn());
+					
+					//resend metadata packet (needed for ghost invis)
+					for(Player viewer : UtilPlayer.getPerverts(p))
+					{
+						UtilPlayer.sendPacket(viewer, UtilEnt.getMetadataPacket(p));
+					}
+					
+					try {
+	                    getKit(p).applyKit(p);
+	                } catch (Exception ex) {
+	                    UtilError.handle(ex);
+	                }
+					
+					team.removeFromDead(p);
 				}
 			}
 		}
-		
-		//should be only one team in this List
-		GameTeam scoringTeam = teamsOnPoint.get(0);
-		int score = _kothScore.get(scoringTeam);
-		score++;
-		_kothScore.put(teamsOnPoint.get(0), score);
-		logger.info("gave team " + scoringTeam.getName() + " one point.\nend of tick");
+		 
 	}
-	
+
 	@EventHandler
 	public void onScoreboardDraw(TimeEvent event) {
 		if (event.getType() != TimeType.TICK)
@@ -673,12 +690,14 @@ public class SearchAndDestroy extends TeamGame {
 				hill.startHologram();
 				hill.drawHologram();
 				i++;
-				
+
 				if(_activeHill == null)
 				{
 					_activeHill = hill;
 					hill.setActiveHill(true);
 				}
+				
+				setOption(GameOption.DEATH_OUT, false);
 			}
 		}
 		//logger.info("Hill1 null? snd gametype");
