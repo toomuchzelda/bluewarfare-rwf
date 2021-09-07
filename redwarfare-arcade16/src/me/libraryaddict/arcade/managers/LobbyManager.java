@@ -70,6 +70,11 @@ public class LobbyManager extends MiniPlugin {
             joinTeamItems.put(builder.build(), team);
         });
     }
+    
+    public ItemStack getKitSelector()
+    {
+    	return _kitSelector.clone();
+    }
 
     public void addCanidate(Player player, ForceKit kit, String info) {
         canidates.removeIf((canidate) -> player.getName().equals(canidate.getPlayer()));
