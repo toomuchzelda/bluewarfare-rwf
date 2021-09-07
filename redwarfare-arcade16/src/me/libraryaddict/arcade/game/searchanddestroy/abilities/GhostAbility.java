@@ -15,6 +15,7 @@ import me.libraryaddict.arcade.events.EquipmentEvent;
 import me.libraryaddict.arcade.events.GameStateEvent;
 import me.libraryaddict.arcade.game.GameTeam;
 import me.libraryaddict.arcade.kits.Ability;
+import me.libraryaddict.arcade.managers.ArcadeManager;
 import me.libraryaddict.arcade.managers.GameState;
 import me.libraryaddict.core.C;
 import me.libraryaddict.core.Pair;
@@ -160,10 +161,29 @@ public class GhostAbility extends Ability {
 
                 if (event.getAttackType() != AttackType.POISON && event.getAttackType() != AttackType.WITHER_POISON) {
                     Player[] array = enemies.toArray(new Player[0]);
-
-                    for (int i = 0; i < 40; i++) {
+                    
+                    /*for (int i = 0; i < 40; i++) {
                         UtilParticle.playParticle(player.getLocation()
                                 .add(UtilMath.rr(-0.4, .4), UtilMath.rr(0, 1.9), UtilMath.rr(-0.4, .4)), color, array);
+                    }*/
+                    int numParticles = 5;
+                    
+                    for (int i = 0; i < numParticles; i++) {
+                        UtilParticle.playParticle(player.getLocation()
+                                .add(UtilMath.rr(-0.2, .2), UtilMath.rr(0, 0.95), UtilMath.rr(-0.2, .2)), color, array);
+                    }
+
+                    for(long i = 1; i < 11; i++)
+                    {
+                    	new BukkitRunnable() {
+                            @Override
+                            public void run() {
+                            	for (int i = 0; i < numParticles; i++) {
+                                    UtilParticle.playParticle(player.getLocation()
+                                            .add(UtilMath.rr(-0.3, .3), UtilMath.rr(0.4, 0.95), UtilMath.rr(-0.3, .3)), color, array);
+                                }
+                            }
+                        }.runTaskLater(getPlugin(), i);
                     }
                 }
 
