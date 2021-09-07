@@ -171,6 +171,20 @@ public class GameTeam {
     public boolean isAlive(Player player) {
         return !_deadAndWhen.containsKey(player.getUniqueId());
     }
+    
+    public long getDiedTime(Player player)
+    {
+    	Long time = _deadAndWhen.get(player.getUniqueId());
+    	if(time != null)
+    		return time.longValue();
+    	else
+    		return 0;
+    }
+    
+    public void removeFromDead(Player player)
+    {
+    	_deadAndWhen.remove(player.getUniqueId());
+    }
 
     public boolean isInTeam(Entity entity) {
         if (_mobs.containsKey(entity.getUniqueId()))
@@ -198,22 +212,30 @@ public class GameTeam {
         new BukkitRunnable() {
             public void run() {
                 player.getInventory().addItem(_game.getManager().getGameManager().getCompass());
+                //not sure if this is the right place for this check
+                //respawning mechanism should be game-specific
+                if(!_game.getOption(GameOption.DEATH_OUT))
+            		player.getInventory().addItem(_game.getManager().getLobby().getKitSelector());
 
                 if (_game.getKits().length > 1) {
-                    player.getInventory().addItem(_game.getManager().getGameManager().getKitLayout());
+                    //player.getInventory().addItem(_game.getManager().getGameManager().getKitLayout());
+                    player.getInventory().setItem(7, _game.getManager().getGameManager().getKitLayout());
                 }
 
                 player.getInventory().setItem(8, _game.getManager().getGameManager().getNextGame());
             }
-        }.runTaskLater(_game.getManager().getPlugin(), 20);
+        }.runTaskLater(_game.getManager().getPlugin(), 10);
 
+        /*
         new BukkitRunnable() {
             public void run() {
                 UtilPlayer.tele(player, _game.getRandomSpectatorSpawn());
             }
         }.runTask(_game.getManager().getPlugin());
+        */
 
         _playersAndTimesDied.put(player.getUniqueId(), getTimesDied(player));
+        //why ms and not ticks
         _deadAndWhen.put(player.getUniqueId(), System.currentTimeMillis());
     }
 }
