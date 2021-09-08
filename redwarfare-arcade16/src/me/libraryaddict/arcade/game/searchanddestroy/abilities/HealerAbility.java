@@ -19,10 +19,16 @@ public class HealerAbility extends Ability {
     @Override
     public void registerAbility() {
         for (Player player : getPlayers(true)) {
-            player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, Integer.MAX_VALUE, 1));
+            giveAbility(player);
         }
     }
 
+    @Override
+    public void giveAbility(Player player)
+    {
+    	player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, Integer.MAX_VALUE, 1));
+    }
+    
     @EventHandler
     private void jump(PlayerInteractEvent event) {
         ItemStack item = event.getItem();

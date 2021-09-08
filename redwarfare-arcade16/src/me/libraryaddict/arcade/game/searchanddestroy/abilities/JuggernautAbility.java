@@ -22,6 +22,8 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 public class JuggernautAbility extends Ability {
+	private static PacketConstructor constructor = ProtocolLibrary.getProtocolManager()
+            .createPacketConstructor(PacketType.Play.Server.UPDATE_HEALTH, 0f, 0, 0f);
     private DamageMod _juggernaut = DamageMod.ARMOR_ENCHANTS.getSubMod("Juggernaut");
     private PacketListener _packetlistener;
 
@@ -129,20 +131,22 @@ public class JuggernautAbility extends Ability {
 
         new BukkitRunnable() {
             public void run() {
-
-                PacketConstructor constructor = ProtocolLibrary.getProtocolManager()
-                        .createPacketConstructor(PacketType.Play.Server.UPDATE_HEALTH, 0f, 0, 0f);
-
                 for (Player player : getPlayers(true)) {
-                    PacketContainer packetbb = constructor.createPacket((float) player.getHealth(), 3, (float) player.getSaturation());
-
-                    UtilPlayer.sendPacket(player, packetbb);
-
-                    player.teleport(player.getLocation().add(new Location(player.getWorld(), 0, 0.1, 0)));
-                    player.setVelocity(new Vector(0, 0.1, 0));
+                    giveAbility(player);
                 }
             }
         }.runTaskLater(getPlugin(), 1);
+    }
+    
+    @Override
+    public void giveAbility(Player player)
+    {
+    	PacketContainer packetbb = constructor.createPacket((float) player.getHealth(), 3, (float) player.getSaturation());
+
+        UtilPlayer.sendPacket(player, packetbb);
+
+        player.teleport(player.getLocation().add(new Location(player.getWorld(), 0, 0.1, 0)));
+        player.setVelocity(new Vector(0, 0.1, 0));
     }
 
     @Override

@@ -4,15 +4,19 @@ import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.injector.PacketConstructor;
+
+import me.libraryaddict.arcade.Arcade;
 import me.libraryaddict.arcade.events.DeathEvent;
 import me.libraryaddict.arcade.events.GameStateEvent;
 import me.libraryaddict.arcade.game.Game;
+import me.libraryaddict.arcade.game.GameOption;
 import me.libraryaddict.arcade.game.GameTeam;
 import me.libraryaddict.arcade.game.searchanddestroy.SearchAndDestroy;
 import me.libraryaddict.arcade.game.searchanddestroy.kits.KitMedic;
 import me.libraryaddict.arcade.game.searchanddestroy.kits.KitSacrificial;
 import me.libraryaddict.arcade.kits.Ability;
 import me.libraryaddict.arcade.kits.Kit;
+import me.libraryaddict.arcade.managers.ArcadeManager;
 import me.libraryaddict.arcade.managers.GameState;
 import me.libraryaddict.core.C;
 import me.libraryaddict.core.condition.ConditionManager;
@@ -235,7 +239,10 @@ public class MedicAbility extends Ability {
     public void onDeath(DeathEvent event) {
         if (event.getDamageEvent().getAttackType().isInstantDeath())
             return;
-
+        
+        if(Arcade.getArcade().getGame().getOption(GameOption.DEATH_OUT))
+        	return;
+        
         Player player = event.getPlayer();
 
         if (!hasAbility(player))
@@ -243,7 +250,7 @@ public class MedicAbility extends Ability {
 
         scoldPlayer(player);
     }
-
+    
     @EventHandler
     public void onGameState(GameStateEvent event) {
         if (event.getState() != GameState.End) {
@@ -343,6 +350,43 @@ public class MedicAbility extends Ability {
                     for (Player medic : getPlayers(true)) {
                         medic.sendMessage(C.Gold + "As this is a small game, your heals are disabled!");
                     }
+                }
+            }.runTaskLater(getPlugin(), 20);
+        }
+    }
+    
+    //this one assumes the fakescoreboards are already set up
+    //may need a removeAbility(Player) counterpart
+    @Override
+    public void giveAbility(Player player)
+    {
+    	ScoreboardManager manager = getManager().getScoreboard();
+        Game game = getManager().getGame();
+
+        for (GameTeam team : game.getTeams()) {
+
+            //FakeScoreboard newBoard = manager.createScoreboard(team.getName() + "Medic", (player) -> hasAbility(player));
+            FakeScoreboard medicBoard = manager.getScoreboard(team.getName() + "Medic");
+            
+            for (Player p : UtilPlayer.getPlayers()) {
+                medicBoard.makeScore(DisplaySlot.BELOW_NAME, p.getName(), "% " + C.DRed + "❤", 100);
+            }
+        }
+        
+        //set the team colours again for the medics scoreboard thingo so medics can see player name colours
+        for (GameTeam team : game.getTeams())
+        {
+        	FakeScoreboard board = manager.getScoreboard(team.getName() + "Medic");
+        	FakeTeam fakeTeam = board.getTeam(team.getName());
+            fakeTeam.setColor(team.getColoring());
+        }
+
+        _smallGame = UtilPlayer.getPlayers().size() <= 1;
+
+        if (_smallGame) {
+            new BukkitRunnable() {
+                public void run() {
+                    player.sendMessage(C.Gold + "As this is a small game, your heals are disabled!");
                 }
             }.runTaskLater(getPlugin(), 20);
         }

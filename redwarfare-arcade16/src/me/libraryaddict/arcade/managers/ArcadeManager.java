@@ -19,7 +19,7 @@ public class ArcadeManager extends CentralManager {
     private LootManager _lootManager;
     private WinManager _winManager;
     private WorldManager _worldManager;
-
+    
     public ArcadeManager(Arcade arcade) {
         super(arcade);
         

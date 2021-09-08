@@ -8,6 +8,7 @@ import me.libraryaddict.arcade.events.WinEvent;
 import me.libraryaddict.arcade.forcekit.ForceKit;
 import me.libraryaddict.arcade.game.searchanddestroy.KillstreakEvent;
 import me.libraryaddict.arcade.game.searchanddestroy.kits.KitHealer;
+import me.libraryaddict.arcade.kits.Ability;
 import me.libraryaddict.arcade.kits.Kit;
 import me.libraryaddict.arcade.kits.KitAvailibility;
 import me.libraryaddict.arcade.kits.KitNone;
@@ -266,7 +267,7 @@ public abstract class Game implements Listener {
 	public Kit getKit(Player player) {
 		return _chosenKit.get(player.getUniqueId());
 	}
-
+	
 	public Kit getKit(String kitName) {
 		for (Kit kit : getKits()) {
 			if (!kit.getName().equalsIgnoreCase(kitName))

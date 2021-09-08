@@ -335,8 +335,13 @@ public class ExplosiveAbility extends Ability {
     @Override
     public void registerAbility() {
         for (Player player : getPlayers(true)) {
-            Recharge.use(player, "GrenadeGive", 8000);
+            giveAbility(player);
         }
     }
 
+    @Override
+    public void giveAbility(Player player)
+    {
+    	Recharge.use(player, "GrenadeGive", 8000);
+    }
 }

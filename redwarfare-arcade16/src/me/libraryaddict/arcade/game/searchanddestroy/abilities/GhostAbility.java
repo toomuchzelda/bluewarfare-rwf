@@ -7,6 +7,8 @@ import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.events.PacketListener;
+import com.comphenix.protocol.injector.PacketConstructor;
+import com.comphenix.protocol.reflect.FieldAccessException;
 import com.comphenix.protocol.reflect.StructureModifier;
 import com.comphenix.protocol.wrappers.WrappedDataWatcher;
 import com.comphenix.protocol.wrappers.WrappedWatchableObject;
@@ -42,12 +44,16 @@ import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.UUID;
 
 public class GhostAbility extends Ability {
+	private static PacketConstructor _constructor = ProtocolLibrary.getProtocolManager()
+    .createPacketConstructor(Server.ENTITY_METADATA, 11,
+            new WrappedDataWatcher(), true);
     private ArrayList<Pair<String, Long>> _arrows = new ArrayList<Pair<String, Long>>();
     private ArrayList<UUID> _ignore = new ArrayList<UUID>();
     private PacketListener _packetlistener;
@@ -333,14 +339,22 @@ public class GhostAbility extends Ability {
             DisguiseUtilities.refreshTrackers(player);
             // Resend his own metadata
             try {
-                ProtocolLibrary.getProtocolManager().sendServerPacket(player, ProtocolLibrary.getProtocolManager()
-                        .createPacketConstructor(Server.ENTITY_METADATA, player.getEntityId(),
-                                WrappedDataWatcher.getEntityWatcher(player), true)
-                        .createPacket(player.getEntityId(), WrappedDataWatcher.getEntityWatcher(player), true));
+                //ProtocolLibrary.getProtocolManager().sendServerPacket(player, ProtocolLibrary.getProtocolManager()
+                //        .createPacketConstructor(Server.ENTITY_METADATA, player.getEntityId(),
+                //                WrappedDataWatcher.getEntityWatcher(player), true)
+            	giveAbility(player);
             } catch (Exception ex) {
                 UtilError.handle(ex);
             }
         }
+    }
+    
+    @Override
+    public void giveAbility(Player player) throws InvocationTargetException, FieldAccessException
+    {
+    	ProtocolLibrary.getProtocolManager().sendServerPacket(player, 
+    			_constructor.createPacket(player.getEntityId(), 
+    					WrappedDataWatcher.getEntityWatcher(player), true));
     }
 
     @Override

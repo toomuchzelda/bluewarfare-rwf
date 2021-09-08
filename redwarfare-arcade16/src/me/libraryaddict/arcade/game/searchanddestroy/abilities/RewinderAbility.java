@@ -117,8 +117,14 @@ public class RewinderAbility extends Ability {
     @Override
     public void registerAbility() {
         for (Player player : getPlayers()) {
-            Recharge.use(player, "Rewinder", 30000, true);
+            giveAbility(player);
         }
     }
 
+    @Override
+    public void giveAbility(Player player)
+    {
+    	Recharge.use(player, "Rewinder", 30000, true);
+    }
+    
 }

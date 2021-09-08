@@ -8,6 +8,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import com.comphenix.protocol.reflect.FieldAccessException;
+
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 
 public abstract class Ability implements Listener {
@@ -73,7 +76,17 @@ public abstract class Ability implements Listener {
 
     public void registerAbility() {
     }
-
+    
+    //for giving abilities per player, for respawn-enabled games (koth)
+    public void giveAbility(Player player) throws InvocationTargetException, FieldAccessException {
+    }
+    
+    //same as above, for removing
+    public void removeAbility(Player player)
+    {
+    	
+    }
+    
     public void unregisterAbility() {
     }
 }
