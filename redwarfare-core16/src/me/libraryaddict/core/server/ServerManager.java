@@ -28,6 +28,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Properties;
 import java.util.UUID;
@@ -65,19 +66,30 @@ public class ServerManager extends MiniPlugin {
             UtilError.handle(ex);
         }
 
-        while (true) {
+        //while (true) {
+        String[] ips = {"http://checkip.amazonaws.com", "https://ipecho.net/plain"};
+        _ip = "Couldn't get ip";
+        for(String url : ips)
+        {
             try {
-                URL whatismyip = new URL("http://checkip.amazonaws.com");
-                BufferedReader in = new BufferedReader(new InputStreamReader(whatismyip.openStream()));
+                URL whatismyip = new URL(url);
+                InputStreamReader input = new InputStreamReader(whatismyip.openStream());
+                BufferedReader in = new BufferedReader(input);
 
                 _ip = in.readLine();
                 in.close();
 
                 break;
             } catch (Exception ex) {
-                UtilError.handle(ex);
+                //UtilError.handle(ex);
+            	getPlugin().getLogger().warning("Couldn't ping " + url + " for this machine's IP Address. " +
+            			ex.getMessage());
             }
         }
+        
+        if(_ip.equals("Couldn't get ip"))
+        	getPlugin().getLogger().warning("Could not get external ip address");
+        //}
 
         if (plugin.getName().contains("Hub")) {
             _serverName = "Hub";
