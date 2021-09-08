@@ -10,7 +10,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.io.File;
 
 public class Arcade extends JavaPlugin {
-    private ArcadeManager _arcadeManager;
+    private static ArcadeManager _arcadeManager = null;
 
     @Override
     public void onDisable() {
@@ -52,5 +52,10 @@ public class Arcade extends JavaPlugin {
         }
 
         _arcadeManager = new ArcadeManager(this);
+    }
+    
+    public static ArcadeManager getArcade()
+    {
+    	return _arcadeManager;
     }
 }
