@@ -12,6 +12,7 @@ import me.libraryaddict.arcade.game.GameTeam;
 import me.libraryaddict.arcade.game.TeamGame;
 import me.libraryaddict.arcade.game.searchanddestroy.killstreak.KillstreakManager;
 import me.libraryaddict.arcade.game.searchanddestroy.kits.*;
+import me.libraryaddict.arcade.kits.Ability;
 import me.libraryaddict.arcade.kits.Kit;
 import me.libraryaddict.arcade.managers.ArcadeManager;
 import me.libraryaddict.arcade.managers.GameState;
@@ -573,6 +574,9 @@ public class SearchAndDestroy extends TeamGame {
 	@EventHandler
 	public void onKothDeadTick(TimeEvent event)
 	{
+		if(getOption(GameOption.DEATH_OUT))
+			return;
+		
 		if(event.getType() != TimeType.TICK)
 			return;
 		
@@ -598,6 +602,12 @@ public class SearchAndDestroy extends TeamGame {
 					
 					try {
 	                    getKit(p).applyKit(p);
+	                    for(Ability ability : getKit(p).getAbilities())
+	                    {
+	                    	//redo custom things done in registerAbility that aren't
+	                    	// registering packet listeners or one-time-per-game things
+	                    	ability.giveAbility(p);
+	                    }
 	                } catch (Exception ex) {
 	                    UtilError.handle(ex);
 	                }
