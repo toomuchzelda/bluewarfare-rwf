@@ -19,6 +19,8 @@ import me.libraryaddict.disguise.DisguiseAPI;
 import me.libraryaddict.disguise.disguisetypes.PlayerDisguise;
 import me.libraryaddict.disguise.disguisetypes.TargetedDisguise.TargetType;
 import me.libraryaddict.disguise.utilities.reflection.ReflectionManager;
+
+import org.bukkit.Bukkit;
 import org.bukkit.Effect;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -210,6 +212,8 @@ public class SkinnerAbility extends Ability {
 
             PlayerDisguise disguise = new PlayerDisguise(skin.getSkin()).setEntity(player)
                     .setDisguiseTarget(TargetType.SHOW_TO_EVERYONE_BUT_THESE_PLAYERS);
+            
+            disguise.setName(skin.getTeam().getColoring() + skin.getSkin().getName());
 
             for (Player p : getGame().getTeam(player).getPlayers()) {
                 disguise.addPlayer(p);
