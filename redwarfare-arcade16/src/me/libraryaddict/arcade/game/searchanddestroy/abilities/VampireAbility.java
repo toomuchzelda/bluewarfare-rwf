@@ -54,7 +54,13 @@ public class VampireAbility extends Ability {
     @Override
     public void registerAbility() {
         for (Player player : getPlayers(true)) {
-            player.setMaxHealth(16);
+            giveAbility(player);
         }
+    }
+    
+    @Override
+    public void giveAbility(Player player)
+    {
+    	player.setMaxHealth(16);
     }
 }

@@ -152,8 +152,13 @@ public class WarperAbility extends Ability {
     @Override
     public void registerAbility() {
         for (Player player : getPlayers()) {
-            Recharge.use(player, "Warper", 10000, true);
+            giveAbility(player);
         }
     }
 
+    @Override
+    public void giveAbility(Player player)
+    {
+    	Recharge.use(player, "Warper", 10000, true);
+    }
 }

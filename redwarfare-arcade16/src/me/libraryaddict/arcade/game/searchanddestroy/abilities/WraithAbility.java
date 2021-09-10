@@ -144,8 +144,14 @@ public class WraithAbility extends Ability {
 
     public void registerAbility() {
         for (Player player : getPlayers(true)) {
-            player.setExp(1);
+            giveAbility(player);
         }
+    }
+    
+    @Override
+    public void giveAbility(Player player)
+    {
+    	player.setExp(1);
     }
 
     @EventHandler(priority = EventPriority.HIGH)
