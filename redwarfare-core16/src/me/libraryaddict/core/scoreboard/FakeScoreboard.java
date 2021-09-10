@@ -60,7 +60,7 @@ public class FakeScoreboard {
         getPlayers().stream().filter((player) -> player.getScoreboard() == getScoreboard() && board.isApplicable(player))
                 .forEach((player) -> board.setScoreboard(player));
     }
-
+    
     public void addTeam(FakeTeam team) {
         _teams.put(team.getTeamName(), team);
     }
@@ -91,6 +91,16 @@ public class FakeScoreboard {
 
     public ArrayList<FakeScoreboard> getChildren() {
         return _children;
+    }
+    
+    public FakeScoreboard getChild(String name)
+    {
+    	for(FakeScoreboard board : _children)
+    	{
+    		if(board.getName().equals(name))
+    			return board;
+    	}
+    	return null;
     }
 
     public Collection<FakeTeam> getFakeTeams() {
