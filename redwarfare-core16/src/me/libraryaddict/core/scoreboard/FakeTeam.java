@@ -442,4 +442,15 @@ public class FakeTeam {
     {
         return ClientboundSetPlayerTeamPacket.createAddOrModifyPacket(_packetNmsTeam, false);
     }
+    
+    //send team packet to related players
+    public void sendPacket()
+    {
+    	ClientboundSetPlayerTeamPacket teamPacket = getPacket();
+        
+        for(Player player : _fakeScoreboard.getPlayers())
+        {
+            UtilPlayer.sendPacket(player, teamPacket);
+        }
+    }
 }
