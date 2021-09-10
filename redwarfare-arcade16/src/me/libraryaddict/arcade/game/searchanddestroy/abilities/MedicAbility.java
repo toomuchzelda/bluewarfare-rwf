@@ -240,7 +240,7 @@ public class MedicAbility extends Ability {
         if (event.getDamageEvent().getAttackType().isInstantDeath())
             return;
         
-        if(Arcade.getArcade().getGame().getOption(GameOption.DEATH_OUT))
+        if(getManager().getGame().getOption(GameOption.DEATH_OUT))
         	return;
         
         Player player = event.getPlayer();
@@ -327,6 +327,7 @@ public class MedicAbility extends Ability {
 
             FakeScoreboard newBoard = manager.createScoreboard(team.getName() + "Medic", (player) -> hasAbility(player));
 
+            //this method automatically anyone who fits that predicate (Medic players)'s scoreboard to this child 
             board.addChild(newBoard);
 
             for (Player player : UtilPlayer.getPlayers()) {
@@ -361,35 +362,53 @@ public class MedicAbility extends Ability {
     public void giveAbility(Player player)
     {
     	ScoreboardManager manager = getManager().getScoreboard();
-        Game game = getManager().getGame();
+    	Game game = getManager().getGame();
 
-        for (GameTeam team : game.getTeams()) {
-
-            //FakeScoreboard newBoard = manager.createScoreboard(team.getName() + "Medic", (player) -> hasAbility(player));
-            FakeScoreboard medicBoard = manager.getScoreboard(team.getName() + "Medic");
-            
-            for (Player p : UtilPlayer.getPlayers()) {
-                medicBoard.makeScore(DisplaySlot.BELOW_NAME, p.getName(), "% " + C.DRed + "❤", 100);
-            }
-        }
-        
-        //set the team colours again for the medics scoreboard thingo so medics can see player name colours
-        for (GameTeam team : game.getTeams())
+    	for(GameTeam team : game.getTeams())
+    	{
+    		FakeScoreboard teamBoard = manager.getScoreboard(team.getName());
+    		FakeScoreboard medicBoard = teamBoard.getChild(team.getName() + "Medic");
+    		if(medicBoard == teamBoard)
+    		{
+    			getPlugin().getLogger().warning("medicBoard == teamBoard!!!");
+    		}
+    		medicBoard.setScoreboard(player);
+    	}
+    	
+    	//send packet again for colours
+    	for (GameTeam team : game.getTeams())
         {
         	FakeScoreboard board = manager.getScoreboard(team.getName() + "Medic");
         	FakeTeam fakeTeam = board.getTeam(team.getName());
-            fakeTeam.setColor(team.getColoring());
+            fakeTeam.sendPacket();
         }
+    }
+    
+    @Override
+    public void removeAbility(Player player)
+    {
+        ScoreboardManager manager = getManager().getScoreboard();
+    	Game game = getManager().getGame();
 
-        _smallGame = UtilPlayer.getPlayers().size() <= 1;
-
-        if (_smallGame) {
-            new BukkitRunnable() {
-                public void run() {
-                    player.sendMessage(C.Gold + "As this is a small game, your heals are disabled!");
-                }
-            }.runTaskLater(getPlugin(), 20);
-        }
+    	for(GameTeam team : game.getTeams())
+    	{
+    		FakeScoreboard teamBoard = manager.getScoreboard(team.getName());
+    		FakeScoreboard medicBoard = teamBoard.getChild(team.getName() + "Medic");
+    		if(medicBoard == teamBoard)
+    		{
+    			getPlugin().getLogger().warning("medicBoard == teamBoard!!!");
+    		}
+    		//FakeScoreboard.setScoreboard will automatically put into a child board if the player
+    		// is applicable for it, which holds true for a medic that just died. so i use the
+    		// bukkit method
+    		//teamBoard.setScoreboard(player);
+    		player.setScoreboard(teamBoard.getScoreboard());
+    		
+    		FakeTeam fakeTeam = medicBoard.getTeam(team.getName());
+    		//FakeTeam medicFakeTeam = medicBoard.getTeam(team.getName());
+            fakeTeam.sendPacket();
+            //medicFakeTeam.sendPacket();
+    	}
     }
 
     private void scoldPlayer(Player player) {
