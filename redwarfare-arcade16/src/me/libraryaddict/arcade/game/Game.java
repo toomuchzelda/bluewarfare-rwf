@@ -1,5 +1,6 @@
 package me.libraryaddict.arcade.game;
 
+import com.comphenix.protocol.reflect.FieldAccessException;
 import com.google.common.base.Predicate;
 import me.libraryaddict.arcade.events.DeathEvent;
 import me.libraryaddict.arcade.events.GameOptionEvent;
@@ -62,6 +63,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.util.Vector;
 
+import java.lang.reflect.InvocationTargetException;
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.Map.Entry;
@@ -674,6 +676,26 @@ public abstract class Game implements Listener {
 				for (Player p : UtilPlayer.getPlayers())
 				{
 					p.getInventory().addItem(KitHealer.JUMP);
+				}
+			}
+			else if(event.getMessage()[0].equalsIgnoreCase("giveability"))
+			{
+				for(Ability ability: getKit(event.getPlayer()).getAbilities())
+				{
+					try
+					{
+						ability.giveAbility(event.getPlayer());
+					} catch (InvocationTargetException | FieldAccessException e)
+					{
+						e.printStackTrace();
+					}
+				}
+			}
+			else if(event.getMessage()[0].equalsIgnoreCase("removeability"))
+			{
+				for(Ability ability: getKit(event.getPlayer()).getAbilities())
+				{
+					ability.removeAbility(event.getPlayer());
 				}
 			}
 			else if(event.getMessage()[0].equalsIgnoreCase("kblib"))

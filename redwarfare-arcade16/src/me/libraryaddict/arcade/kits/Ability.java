@@ -82,9 +82,7 @@ public abstract class Ability implements Listener {
     }
     
     //same as above, for removing
-    public void removeAbility(Player player)
-    {
-    	
+    public void removeAbility(Player player) {
     }
     
     public void unregisterAbility() {

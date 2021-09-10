@@ -1,5 +1,6 @@
 package me.libraryaddict.arcade.game;
 
+import me.libraryaddict.arcade.kits.Ability;
 import me.libraryaddict.core.data.TeamSettings;
 import me.libraryaddict.core.utils.UtilLoc;
 import me.libraryaddict.core.utils.UtilPlayer;
@@ -207,7 +208,15 @@ public class GameTeam {
     public void setDead(Player player) {
         if (!isAlive(player))
             return;
-
+        
+        if(!_game.getOption(GameOption.DEATH_OUT))
+        {
+        	for(Ability ability : _game.getKit(player).getAbilities())
+        	{
+        		ability.removeAbility(player);
+        	}
+        }
+        	
         UtilPlayer.setSpectator(player);
         new BukkitRunnable() {
             public void run() {
@@ -224,7 +233,7 @@ public class GameTeam {
 
                 player.getInventory().setItem(8, _game.getManager().getGameManager().getNextGame());
             }
-        }.runTaskLater(_game.getManager().getPlugin(), 10);
+        }.runTaskLater(_game.getManager().getPlugin(), 1);
 
         /*
         new BukkitRunnable() {
