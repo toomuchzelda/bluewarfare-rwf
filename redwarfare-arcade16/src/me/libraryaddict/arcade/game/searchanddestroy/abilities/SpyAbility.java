@@ -105,7 +105,10 @@ public class SpyAbility extends Ability {
 			{
 				board.getTeam(observerTeam.getName() + "Spy").addPlayer(player);
 			}
-			//}
+			else
+			{
+				board.getTeam(observerTeam.getName()).addPlayer(player);
+			}
 		}
 	}
 
@@ -117,22 +120,17 @@ public class SpyAbility extends Ability {
 		{
 			//FakeScoreboard board = game.getScoreboard().getScoreboard(observerTeam.getName());
 			FakeScoreboard board = game.getScoreboard().getScoreboard(observerTeam.getName());
-			//FakeTeam team = board.getTeam(observerTeam.getName() + "Spy");
-			//team.removePlayer(player.getName());
-			//FakeTeam realTeam = board.getTeam(observerTeam.getName());
-			//realTeam.addPlayer(player);
+			
+			GameTeam playersTeam = game.getTeam(player);
 
 			//remove them from all other team scoreboard spyTeams (They shouldn't be in their own
 			// scoreboard team's spyTeam)
-			if(game.getTeam(player) != observerTeam)
+			if(playersTeam != observerTeam)
 				board.getTeam(observerTeam.getName() + "Spy").removePlayer(player.getName());
 
-			//re-add them to all team scoreboard's realTeams
-			for(GameTeam renderedTeam : game.getTeams())
-			{
-				FakeTeam realTeam = board.getTeam(renderedTeam.getName());
-				realTeam.addPlayer(player);
-			}
+			//re-add them to their team's realTeam on each team scoreboard
+			FakeTeam realTeam = board.getTeam(playersTeam.getName());
+			realTeam.addPlayer(player);
 		}
 	}
 }
