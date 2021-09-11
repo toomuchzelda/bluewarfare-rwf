@@ -18,6 +18,7 @@ import net.minecraft.network.protocol.game.ClientboundSetPlayerTeamPacket;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.scores.PlayerTeam;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.ScoreboardManager;
@@ -35,6 +36,7 @@ public class FakeTeam {
     private HashMap<Team.Option, Team.OptionStatus> _options = new HashMap<Team.Option, Team.OptionStatus>();
     private ArrayList<String> _players = new ArrayList<String>();
     private String _prefix = "";
+    private ChatFormatting _color = ChatFormatting.RESET;
     private boolean _seeInvisibles;
     private Field _setPrefix;
     private Field _setSuffix;
@@ -153,6 +155,7 @@ public class FakeTeam {
         FakeTeam team = new FakeTeam(board, _teamName);
         
         team._prefix = _prefix;
+        team._color = EnumChatFormatHelper.enumChatFromString(_prefix);
         team._seeInvisibles = _seeInvisibles;
         team._suffix = _suffix;
         team._players = new ArrayList<String>(_players);
@@ -328,6 +331,12 @@ public class FakeTeam {
             _team = board.registerNewTeam(_teamName);
         
         _team.setPrefix(_prefix);
+        if(_prefix.length() > 0)
+        {
+	        ChatColor color = ChatColor.getByChar(_prefix);
+	        if(color != null)
+	        	_team.setColor(color);
+        }
         _team.setSuffix(_suffix);
         _team.setAllowFriendlyFire(!_seeInvisibles);
         _team.setCanSeeFriendlyInvisibles(_seeInvisibles);
@@ -350,6 +359,12 @@ public class FakeTeam {
             _packetTeam = _packetScoreboard.registerNewTeam(_teamName);
         
         _packetTeam.setPrefix(_prefix);
+        if(_prefix.length() > 0)
+        {
+	        ChatColor packetColor = ChatColor.getByChar(_prefix);
+	        if(packetColor != null)
+	        	_packetTeam.setColor(packetColor);
+        }
         _packetTeam.setSuffix(_suffix);
         _packetTeam.setAllowFriendlyFire(!_seeInvisibles);
         _packetTeam.setCanSeeFriendlyInvisibles(_seeInvisibles);
