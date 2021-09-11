@@ -327,7 +327,8 @@ public class MedicAbility extends Ability {
 
             FakeScoreboard newBoard = manager.createScoreboard(team.getName() + "Medic", (player) -> hasAbility(player));
 
-            //this method automatically anyone who fits that predicate (Medic players)'s scoreboard to this child 
+            //this method automatically add anyone who fits that predicate (Medic players)'s scoreboard
+            // to this child 
             board.addChild(newBoard);
 
             for (Player player : UtilPlayer.getPlayers()) {
@@ -339,8 +340,9 @@ public class MedicAbility extends Ability {
         for (GameTeam team : game.getTeams())
         {
         	FakeScoreboard board = manager.getScoreboard(team.getName() + "Medic");
-        	FakeTeam fakeTeam = board.getTeam(team.getName());
-            fakeTeam.setColor(team.getColoring());
+        	//FakeTeam fakeTeam = board.getTeam(team.getName());
+        	for(FakeTeam fakeTeam : board.getFakeTeams())
+        		fakeTeam.setColor(fakeTeam.getPrefix());
         }
 
         _smallGame = UtilPlayer.getPlayers().size() <= 1;
@@ -376,12 +378,14 @@ public class MedicAbility extends Ability {
     	}
     	
     	//send packet again for colours
+    	/*
     	for (GameTeam team : game.getTeams())
         {
         	FakeScoreboard board = manager.getScoreboard(team.getName() + "Medic");
         	FakeTeam fakeTeam = board.getTeam(team.getName());
             fakeTeam.sendPacket();
         }
+        */
     }
     
     @Override
@@ -404,9 +408,9 @@ public class MedicAbility extends Ability {
     		//teamBoard.setScoreboard(player);
     		player.setScoreboard(teamBoard.getScoreboard());
     		
-    		FakeTeam fakeTeam = medicBoard.getTeam(team.getName());
+    		//FakeTeam fakeTeam = medicBoard.getTeam(team.getName());
     		//FakeTeam medicFakeTeam = medicBoard.getTeam(team.getName());
-            fakeTeam.sendPacket();
+            //fakeTeam.sendPacket();
             //medicFakeTeam.sendPacket();
     	}
     }
