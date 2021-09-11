@@ -606,6 +606,7 @@ public class SearchAndDestroy extends TeamGame {
 	                    {
 	                    	//redo custom things done in registerAbility that aren't
 	                    	// registering packet listeners or one-time-per-game things
+	                    	// ability removals handled in GameTeam.setDead(Player)
 	                    	ability.giveAbility(p);
 	                    }
 	                } catch (Exception ex) {
@@ -621,11 +622,12 @@ public class SearchAndDestroy extends TeamGame {
 				else
 				{
 					long seconds = 5 - ((now - diedWhen) / 1000);
-					p.sendTitle(" ", C.Green + "Respawning in " + seconds + " seconds", 0, 3, 0);
+					int ticksToDisplay = (int) (100 - (now - diedWhen) / 50);
+					ticksToDisplay = Math.max(1, ticksToDisplay);
+					p.sendTitle(" ", C.Green + "Respawning in " + seconds + " seconds", 0, ticksToDisplay, 0);
 				}
 			}
 		}
-		 
 	}
 
 	@EventHandler
@@ -795,15 +797,16 @@ public class SearchAndDestroy extends TeamGame {
 				FakeTeam ghostTeam = board.createTeam(renderedTeam.getName() + "Invis");
 				FakeTeam spyTeam = board.createTeam(renderedTeam.getName() + "Spy");
 
-				realTeam.setPrefix(renderedTeam.getColoring());
-				spyTeam.setPrefix(renderedTeam.getColoring());
-				ghostTeam.setPrefix(renderedTeam.getColoring());
+				realTeam.setPrefix(renderedTeam.getColoring()); //+ "real");
+				spyTeam.setPrefix(renderedTeam.getColoring());// + "spy");
+				ghostTeam.setPrefix(renderedTeam.getColoring());// + "ghost");
 
 				ghostTeam.setOption(Option.NAME_TAG_VISIBILITY, OptionStatus.NEVER);
 
 				realTeam.setSeeInvisiblePlayers(true);
 
 				for (Player player : renderedTeam.getPlayers()) {
+					//					team the player is on**
 					if (observerTeam == renderedTeam) {
 						realTeam.addPlayer(player);
 						continue;
