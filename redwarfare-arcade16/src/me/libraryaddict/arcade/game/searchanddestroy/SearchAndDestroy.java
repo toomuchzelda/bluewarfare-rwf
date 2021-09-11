@@ -79,7 +79,7 @@ public class SearchAndDestroy extends TeamGame {
 
 		setKits(new KitTrooper(), new KitBerserker(), new KitDemolitions(), new KitDwarf(), new KitExplosive(),
 				new KitGhost(getManager().getPlugin()), new KitJuggernaut(getManager().getPlugin()), new KitLongbow(),
-				new KitMedic(), new KitPyro(), new KitRewind(), new KitShortbow(), new KitSpy(), new KitTeleporter(),
+				new KitMedic(), new KitPyro(), new KitRewind(), new KitShortbow(), /*new KitSpy(),*/ new KitTeleporter(),
 				new KitVampire(), new KitVenom(), new KitWarper(), new KitNinja(), new KitFrost(), new KitSkinner(),
 				new KitWraith(getManager().getPlugin()), new KitBleeder(), new KitHealer(),
 				new KitSans(), new KitSacrificial(), new KitNaruto());
@@ -797,9 +797,9 @@ public class SearchAndDestroy extends TeamGame {
 				FakeTeam ghostTeam = board.createTeam(renderedTeam.getName() + "Invis");
 				FakeTeam spyTeam = board.createTeam(renderedTeam.getName() + "Spy");
 
-				realTeam.setPrefix(renderedTeam.getColoring()); //+ "real");
-				spyTeam.setPrefix(renderedTeam.getColoring());// + "spy");
-				ghostTeam.setPrefix(renderedTeam.getColoring());// + "ghost");
+				realTeam.setPrefix(renderedTeam.getColoring()+ "real");
+				spyTeam.setPrefix(renderedTeam.getColoring() + "spy");
+				ghostTeam.setPrefix(renderedTeam.getColoring() + "ghost");
 
 				ghostTeam.setOption(Option.NAME_TAG_VISIBILITY, OptionStatus.NEVER);
 
