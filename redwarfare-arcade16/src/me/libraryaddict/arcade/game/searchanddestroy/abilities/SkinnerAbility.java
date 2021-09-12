@@ -173,8 +173,14 @@ public class SkinnerAbility extends Ability {
     @Override
     public void unregisterAbility() {
         for (Player player : getPlayers(true)) {
-            DisguiseAPI.undisguiseToAll(player);
+            removeAbility(player);
         }
+    }
+    
+    @Override
+    public void removeAbility(Player player)
+    {
+    	DisguiseAPI.undisguiseToAll(player);
     }
 
     @EventHandler
@@ -213,7 +219,12 @@ public class SkinnerAbility extends Ability {
             PlayerDisguise disguise = new PlayerDisguise(skin.getSkin()).setEntity(player)
                     .setDisguiseTarget(TargetType.SHOW_TO_EVERYONE_BUT_THESE_PLAYERS);
             
-            disguise.setName(skin.getTeam().getColoring() + skin.getSkin().getName());
+            disguise.setName(skin.getSkin().getName());
+            //disguise.setName("asdasds");
+            
+            
+            //disguise.getWatcher().setCustomName(skin.getTeam().getColoring() + skin.getSkin().getName());
+            //disguise.getWatcher().setCustomNameVisible(true);
 
             for (Player p : getGame().getTeam(player).getPlayers()) {
                 disguise.addPlayer(p);
