@@ -233,7 +233,7 @@ public class GameTeam {
 
                 player.getInventory().setItem(8, _game.getManager().getGameManager().getNextGame());
             }
-        }.runTaskLater(_game.getManager().getPlugin(), 1);
+        }.runTaskLater(_game.getManager().getPlugin(), 10);
 
         /*
         new BukkitRunnable() {
