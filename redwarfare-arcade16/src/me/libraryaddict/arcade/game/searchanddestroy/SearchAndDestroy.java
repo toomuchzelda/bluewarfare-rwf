@@ -20,6 +20,7 @@ import me.libraryaddict.core.C;
 import me.libraryaddict.core.ServerType;
 import me.libraryaddict.core.damage.AttackType;
 import me.libraryaddict.core.data.TeamSettings;
+import me.libraryaddict.core.map.WorldData;
 import me.libraryaddict.core.scoreboard.FakeScoreboard;
 import me.libraryaddict.core.scoreboard.FakeTeam;
 import me.libraryaddict.core.time.TimeEvent;
@@ -29,11 +30,9 @@ import me.libraryaddict.core.utils.UtilParticle.ViewDist;
 import me.libraryaddict.disguise.LibsDisguises;
 import me.libraryaddict.disguise.utilities.DisguiseUtilities;
 
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.Particle;
-import org.bukkit.Sound;
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.TextComponent;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event.Result;
@@ -73,6 +72,7 @@ public class SearchAndDestroy extends TeamGame {
 	private ArrayList<Hill> _hills = new ArrayList<Hill>();
 	private Hill _activeHill = null;
 	private HashMap<GameTeam, Integer> _kothScore = new HashMap<>();
+	private boolean randomHillOrder = false;
 
 	public SearchAndDestroy(ArcadeManager arcadeManager) {
 		super(arcadeManager, ServerType.SearchAndDestroy);
@@ -200,7 +200,11 @@ public class SearchAndDestroy extends TeamGame {
 	{
 		FakeScoreboard board = getManager().getScoreboard().getMainScoreboard();
 
-		ArrayList<GameTeam> teams = getTeams(true);
+		ArrayList<GameTeam> teams;
+		if(_mapType == SNDMapType.KOTH)
+			teams = getTeams();
+		else
+			teams = getTeams(true);
 
 		Collections.sort(teams, GameTeam.COMPARE_PLAYERS);
 
@@ -215,7 +219,7 @@ public class SearchAndDestroy extends TeamGame {
 			lines.add(team.getColoring() + C.Bold + team.getName());
 			//C.Reset + ": " + team.getPlayers().size() + " players");
 			int score = _kothScore.get(team);
-			lines.add(team.getColoring() + C.Bold + "Score: " + score);
+			lines.add(team.getColoring() + C.Bold + "Score: " + score / 20);
 			lines.add(team.getPlayers().size() + " players");
 
 
@@ -232,6 +236,12 @@ public class SearchAndDestroy extends TeamGame {
 		}
 
 		lines.add(C.Bold + "Active Hill: " + _activeHill.getName());
+		int timeLeft;
+		if(isLive())
+			timeLeft = _activeHill.getHillTime() - getGameTime();
+		else
+			timeLeft = _activeHill.getHillTime();
+		lines.add(C.Bold + "Time Left: " + C.Yellow + (timeLeft));
 
 		if (lines.size() > 15) {
 			while (lines.contains(""))
@@ -455,6 +465,9 @@ public class SearchAndDestroy extends TeamGame {
 		if (!isLive()) {
 			return;
 		}
+		
+		if(_mapType == SNDMapType.KOTH)
+			return;
 
 		if (_poisonStage == 0 && !UtilTime.elasped(getStateChanged(), _deathTimer)) {
 			if (System.currentTimeMillis() - _lastDeath > 90000) {
@@ -534,22 +547,85 @@ public class SearchAndDestroy extends TeamGame {
 
 		Logger logger = ArcadeManager.getManager().getPlugin().getLogger();
 		//logger.info("koth ticking...");
-
+		
+		//check if active hill has changed
+		if(getGameTime() >= _activeHill.getHillTime())
+		{
+			_activeHill.setDone();
+			boolean noMoreHills = true;
+			for(Hill h : _hills)
+			{
+				if(!h.isDone())
+				{
+					_activeHill = h;
+					noMoreHills = false;
+					//Bukkit.broadcastMessage(C.Gold + "Hill has changed to " + _activeHill.getName()
+					//	+ "! Go There!!!!");
+					for(Player p : Bukkit.getOnlinePlayers())
+					{
+						p.sendTitle(" ", C.Gold + "The Hill has moved to " + _activeHill.getName());
+						p.playSound(p.getLocation(), Sound.ENTITY_PARROT_IMITATE_ENDER_DRAGON, SoundCategory.AMBIENT,
+								9999, 0.5f);
+					}
+					break;
+				}
+			}
+			
+			if(noMoreHills)
+			{
+				setOption(GameOption.DEATH_MESSAGES, false);
+				
+				GameTeam winningTeam = getTeams().get(0);
+				int highestScore = 0;
+				for(GameTeam gameTeam : getTeams())
+				{
+					int score = _kothScore.get(gameTeam);
+					if(score > highestScore)
+					{
+						highestScore = score;
+						winningTeam = gameTeam;
+					}
+				}
+				
+				setOption(GameOption.DEATH_OUT, true);
+				for(GameTeam team : getTeams())
+				{
+					if(winningTeam != team)
+					{
+						for (Player p : team.getPlayers())
+						{
+							team.setDead(p);
+						}
+						team.setDead(true);
+					}
+				}
+				
+				setOption(GameOption.DEATH_MESSAGES, true);
+				checkGameState();
+				return;
+			}
+		}
+		
+		
 		for(Player p : Bukkit.getOnlinePlayers())
 		{
-			if(_activeHill.getBoundingBox().contains(p.getBoundingBox()))
-			{
-				if(!_activeHill.getStandingPlayers().contains(p))
-					_activeHill.addStandingPlayer(p);
-				//logger.info("player " + p.getName() + " standing inside " + _activeHill.getName());
-			}
-			else if(_activeHill.getStandingPlayers().contains(p))
-				_activeHill.removeStandingPlayer(p);
+				if (_activeHill.getBoundingBox().contains(p.getBoundingBox()))
+				{
+					if(isAlive(p))
+					{
+						if (!_activeHill.getStandingPlayers().contains(p))
+							_activeHill.addStandingPlayer(p);
+						//logger.info("player " + p.getName() + " standing inside " + _activeHill.getName());
+					}
+				}
+				else if (_activeHill.getStandingPlayers().contains(p))
+					_activeHill.removeStandingPlayer(p);
 		}
 
 		//logger.info(_activeHill.getStandingPlayers().toString());
 		//ArrayList<GameTeam> teamsOnPoint = new ArrayList<>();
 		GameTeam teamOnPoint = null;
+		Color particleColor = Color.WHITE;
 		if(_activeHill.getStandingPlayers().size() > 0)
 		{
 			for(Player p : _activeHill.getStandingPlayers())
@@ -560,14 +636,23 @@ public class SearchAndDestroy extends TeamGame {
 					teamOnPoint = team;
 				//more than one team on point, reward no points
 				else if(team != teamOnPoint)
-					return;
+				{
+					teamOnPoint = null;
+					break;
+				}
 			}
 	
-			int score = _kothScore.get(teamOnPoint);
-			score++;
-			_kothScore.put(teamOnPoint, score);
+			if(teamOnPoint != null)
+			{
+				int score = _kothScore.get(teamOnPoint);
+				score++;
+				_kothScore.put(teamOnPoint, score);
+				particleColor = teamOnPoint.getColor();
+			}
 			//logger.info("gave team " + teamOnPoint.getName() + " one point.\nend of tick");
 		}
+		
+		_activeHill.drawParticles(particleColor);
 	}
 	
 	//for players waiting to respawn
@@ -622,9 +707,17 @@ public class SearchAndDestroy extends TeamGame {
 				else
 				{
 					long seconds = 5 - ((now - diedWhen) / 1000);
-					int ticksToDisplay = (int) (100 - (now - diedWhen) / 50);
-					ticksToDisplay = Math.max(1, ticksToDisplay);
-					p.sendTitle(" ", C.Green + "Respawning in " + seconds + " seconds", 0, ticksToDisplay, 0);
+					//int ticksToDisplay = (int) (100 - (now - diedWhen) / 50);
+					//ticksToDisplay = Math.max(1, ticksToDisplay);
+					//p.sendTitle(" ", C.Green + "Respawning in " + seconds + " seconds", 0, ticksToDisplay, 0);
+					String color;
+					if(now % 1000 > 500)
+						color = C.Green;
+					else
+						color = C.DGreen;
+					p.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(
+							color + "Respawning in " + seconds + " seconds"
+					));
 				}
 			}
 		}
@@ -699,26 +792,27 @@ public class SearchAndDestroy extends TeamGame {
 				_mapType = SNDMapType.KOTH;
 
 				int i = 0;
-				logger.info(key + " , iteration " + i);
-				//need to be ordered XZ corner, then -XZ corner, in the config.yml
-				ArrayList<Location> hillLocs = getData().getCustomLocs(key);
-				//add 1 to XZ corner to bump it up to edge of blocks
-				//int number = Integer.parseInt(hillKey.replaceAll("Hills", ""));
-				String name = key.replaceFirst("Hill", "");
-				Hill hill = new Hill(i, name, hillLocs.get(0).add(1, 0, 1), hillLocs.get(1));
+				//logger.info(key + " , iteration " + i);
+				Hill hill = null;
+				try {
+					hill = parseHill(key, i);
+				}
+				catch(Exception e) {
+					UtilError.handle(e);
+					e.printStackTrace();
+					continue;
+				}
 				_hills.add(hill);
 				logger.info("Added Hill: " + hill.toString());
 				hill.startHologram();
 				hill.drawHologram();
 				i++;
-
-				if(_activeHill == null)
-				{
-					_activeHill = hill;
-					hill.setActiveHill(true);
-				}
-				
-				setOption(GameOption.DEATH_OUT, false);
+			}
+			else if(key.equalsIgnoreCase("RandomHillOrder"))
+			{
+				//randomHillOrder = Boolean.parseBoolean(entry.getValue().get(0));
+				randomHillOrder = Boolean.parseBoolean(getData().getData(key).get(0));
+				logger.info("randomHills: " + randomHillOrder);
 			}
 		}
 		//logger.info("Hill1 null? snd gametype");
@@ -729,6 +823,23 @@ public class SearchAndDestroy extends TeamGame {
 			{
 				_kothScore.put(team, 0);
 			}
+			setOption(GameOption.DEATH_OUT, false);
+			
+			if(randomHillOrder)
+			{
+				Collections.shuffle(_hills);
+			}
+			
+			//make each hill time += the previous
+			int time = 0;
+			for(Hill h : _hills)
+			{
+				time += h.getHillTime();
+				if(time != 0)
+					h.setHillTime(time);
+			}
+			
+			_activeHill = _hills.get(0);
 		}
 		else// if(_mapType != SNDMapType.KOTH)
 		{
@@ -746,6 +857,32 @@ public class SearchAndDestroy extends TeamGame {
 				}
 			}
 		}
+	}
+	
+	public Hill parseHill(String key, int number)
+	{
+		WorldData worldData = getData();
+		ArrayList<String> data = worldData.getData(key);
+		Hill hill;
+		int i = 0;
+		String name = key.replaceFirst("Hill", "");
+		//need to be ordered XZ corner, then -XZ corner, in the map's config.yml
+		Location corner1 = worldData.parseLoc(data.get(0));
+		Location corner2 = worldData.parseLoc(data.get(1));
+		int hillTime;
+		try
+		{
+			hillTime = Integer.parseInt(data.get(2).split(",")[1]);
+		}
+		catch(Exception e)
+		{
+			hillTime = 1500;
+			UtilError.handle(e);
+			e.printStackTrace();
+		}
+		//							add 1 to XZ corner to bump it up to edge of block
+		hill = new Hill(number, name, corner1.add(1, 0, 1), corner2, hillTime);
+		return hill;
 	}
 
 	public void sendTimeProgress(Player player) {
