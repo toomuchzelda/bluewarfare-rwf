@@ -15,7 +15,8 @@ public class MysqlFetchAlts extends DatabaseOperation {
 
     public MysqlFetchAlts(String... ips) {
         try (Connection con = getMysql()) {
-            PreparedStatement stmt = con.prepareStatement("SELECT * FROM playerinfo WHERE info = ?");
+            PreparedStatement stmt = con.prepareStatement("SELECT * FROM playerinfo WHERE info = ?", 
+            		ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
 
             for (String ip : ips) {
                 stmt.setString(1, ip);
