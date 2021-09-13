@@ -20,7 +20,7 @@ public class KitWraith extends SnDKit {
         setPrice(200);
 
         setItems(new ItemBuilder(Material.BOW).addEnchantment(Enchantment.ARROW_INFINITE, 1)
-                .addEnchantment(Enchantment.ARROW_DAMAGE, 3).build(), new ItemStack(Material.ARROW), new ItemStack(Material.ENDER_PEARL, 4), new ItemBuilder(Material.WOODEN_AXE).setTitle("Sword?").build());
+                .addEnchantment(Enchantment.ARROW_DAMAGE, 1).build(), new ItemStack(Material.ARROW), new ItemBuilder(Material.WOODEN_AXE).setTitle("Sword?").build());
     }
 
     public boolean canTeleportTo() {
