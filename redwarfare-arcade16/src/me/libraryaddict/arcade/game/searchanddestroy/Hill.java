@@ -2,6 +2,9 @@ package me.libraryaddict.arcade.game.searchanddestroy;
 
 import java.util.ArrayList;
 
+import me.libraryaddict.arcade.game.searchanddestroy.abilities.GhostAbility;
+import me.libraryaddict.arcade.kits.Ability;
+import me.libraryaddict.arcade.managers.ArcadeManager;
 import me.libraryaddict.core.data.ParticleColor;
 import me.libraryaddict.core.utils.UtilParticle;
 import org.bukkit.*;
@@ -26,8 +29,10 @@ public class Hill
 	//area to stand within to trigger
 	private BoundingBox _boundingBox;
 	private int _hillTime;
+	private ArcadeManager _manager;
 	
-	public Hill(int hillNumber, String hillName, Location xzBorder, Location oppositeCorner, int time)
+	public Hill(int hillNumber, String hillName, Location xzBorder, Location oppositeCorner, int time,
+				ArcadeManager manager)
 	{
 		_hillNumber = hillNumber;
 		_hillName = hillName;
@@ -38,6 +43,7 @@ public class Hill
 		_standingPlayers = new ArrayList<>();
 		this._hillTime = time;
 		_isDone = false;
+		_manager = manager;
 		
 		_boundingBox = new BoundingBox(_xzCorner.getX(), _xzCorner.getY(), _xzCorner.getZ(),
 				_oppositeCorner.getX(), _oppositeCorner.getY(), _oppositeCorner.getZ());
@@ -52,7 +58,7 @@ public class Hill
 		zLength /= 2;
 		
 		Location holoLoc = new Location(_xzCorner.getWorld(), _oppositeCorner.getX() + xLength,
-				_oppositeCorner.getY(), _oppositeCorner.getZ() + zLength);
+				_xzCorner.getY(), _oppositeCorner.getZ() + zLength);
 		
 		_hologram = new Hologram(holoLoc, "Hill");
         _hologram.start();
@@ -81,10 +87,11 @@ public class Hill
 			red = 0.00001;
 		
 		//draw x lines
-		for(float x = 0; x <= xLength; x += 0.5f)
+		Vector location = _oppositeCorner.toVector();
+		location.setY(_xzCorner.getY());
+		for(int x = 0; x <= xLength; x += 1)
 		{
-			Vector location = _oppositeCorner.toVector().add(new Vector(x, 0, 0));
-			location.setY(_xzCorner.getY());
+			location.setX(_oppositeCorner.getX() + x);
 			//fuck Utilparticle
 			world.spawnParticle(Particle.SPELL_MOB, location.getX(), location.getY(),
 					location.getZ(), 0, red, green, blue, 1);
@@ -93,10 +100,11 @@ public class Hill
 					location.getZ() + zLength, 0, red, green, blue, 1);
 		}
 		
-		for(float z = 0; z <= zLength; z += 0.5f)
+		//draw z lines
+		location.setX(_oppositeCorner.getX());
+		for(int z = 0; z <= zLength; z += 1)
 		{
-			Vector location = _oppositeCorner.toVector().add(new Vector(0, 0, z));
-			location.setY(_xzCorner.getY());
+			location.setZ(_oppositeCorner.getZ() + z);
 			//fuck Utilparticle
 			world.spawnParticle(Particle.SPELL_MOB, location.getX(), location.getY(),
 					location.getZ(), 0, red, green, blue, 1);
@@ -105,6 +113,19 @@ public class Hill
 					location.getZ(), 0, red, green, blue, 1);
 		}
 	}
+	
+	public void revealGhosts()
+	{
+		for(Player p : getStandingPlayers())
+		{
+			for(Ability ability : _manager.getGame().getKit(p).getAbilities())
+			{
+				if(ability instanceof GhostAbility)
+					((GhostAbility) ability).playRevealParticles(p);
+			}
+		}
+	}
+	
 	
 	public String getName()
 	{

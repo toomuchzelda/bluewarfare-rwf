@@ -16,6 +16,7 @@ import me.libraryaddict.arcade.events.DeathEvent;
 import me.libraryaddict.arcade.events.EquipmentEvent;
 import me.libraryaddict.arcade.events.GameStateEvent;
 import me.libraryaddict.arcade.game.GameTeam;
+import me.libraryaddict.arcade.game.searchanddestroy.SearchAndDestroy;
 import me.libraryaddict.arcade.kits.Ability;
 import me.libraryaddict.arcade.managers.ArcadeManager;
 import me.libraryaddict.arcade.managers.GameState;
@@ -176,7 +177,7 @@ public class GhostAbility extends Ability {
                     
                     for (int i = 0; i < numParticles; i++) {
                         UtilParticle.playParticle(player.getLocation()
-                                .add(UtilMath.rr(-0.2, .2), UtilMath.rr(0, 0.95), UtilMath.rr(-0.2, .2)), color, array);
+                                .add(UtilMath.rr(-0.3, .3), UtilMath.rr(0, 0.95), UtilMath.rr(-0.3, .3)), color, array);
                     }
 
                     for(long i = 1; i < 11; i++)
@@ -204,6 +205,19 @@ public class GhostAbility extends Ability {
         });
     }
 
+    public void playRevealParticles(Player player)
+    {
+        if(hasAbility(player))
+        {
+            ParticleColor color = getGame().getTeam(player).getSettings().getParticleColor();
+            for (int i = 0; i < 2; i++) {
+                UtilParticle.playParticle(player.getLocation()
+                        .add(UtilMath.rr(-0.3, .3), UtilMath.rr(0, 1.7), UtilMath.rr(-0.3, .3)), color);
+            }
+        }
+    }
+    
+    
     @EventHandler
     public void onCommandPreprocess(PlayerCommandPreprocessEvent event) {
         Player player = event.getPlayer();
