@@ -184,7 +184,8 @@ public class LobbyManager extends MiniPlugin {
         if (getGame().getKits().length > 1) {
             for (Player player : UtilPlayer.getPlayers()) {
                 player.getInventory().addItem(_kitSelector);
-                player.getInventory().addItem(getManager().getGameManager().getKitLayout());
+                //player.getInventory().addItem(getManager().getGameManager().getKitLayout());
+                player.getInventory().setItem(6, getManager().getGameManager().getKitLayout());
                 player.getInventory().setItem(7, getManager().getPreferences().getIcon());
             }
         }
@@ -199,7 +200,7 @@ public class LobbyManager extends MiniPlugin {
 
         canidates.add(new ForceKitCanidate(null, "Default", "Don't force kits"));
 
-        _countdown = 120;
+        _countdown = 90;
         _gameStarts = System.currentTimeMillis() + (_countdown * 1000);
 
         sendInfo();
