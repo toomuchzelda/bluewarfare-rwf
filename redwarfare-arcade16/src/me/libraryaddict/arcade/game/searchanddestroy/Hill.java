@@ -66,7 +66,13 @@ public class Hill
 	
 	public void drawHologram()
 	{
-		_hologram.setText("Hill " + _hillName, C.Bold + "KING: TODO");
+		SearchAndDestroy snd = (SearchAndDestroy) _manager.getGame();
+		String secondLine;
+		if(_isActiveHill)
+			secondLine = C.Green +"Active Hill. Stand in here!";
+		else
+			secondLine = C.Red + "This Hill is inactive. Go to "  + snd.getActiveHill().getName() + "!";
+		_hologram.setText("Hill " + _hillName, secondLine);
 	}
 	
 	public void drawParticles(Color color)

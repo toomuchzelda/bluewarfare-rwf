@@ -542,6 +542,9 @@ public class SearchAndDestroy extends TeamGame {
 	@EventHandler
 	public void onKothTick(TimeEvent event)
 	{
+		if (event.getType() != TimeType.TICK)
+			return;
+		
 		if(_mapType == SNDMapType.KOTH)
 		{
 			//show where hills are before game started
@@ -554,9 +557,6 @@ public class SearchAndDestroy extends TeamGame {
 				return;
 			}
 			
-			if (event.getType() != TimeType.TICK)
-				return;
-			
 			Logger logger = ArcadeManager.getManager().getPlugin().getLogger();
 			//logger.info("koth ticking...");
 			
@@ -564,13 +564,16 @@ public class SearchAndDestroy extends TeamGame {
 			if (getGameTime() >= _activeHill.getHillTime())
 			{
 				_activeHill.setDone();
+				_activeHill.setActiveHill(false);
 				boolean noMoreHills = true;
 				for (Hill h : _hills)
 				{
+					//found the next hill to use
 					if (!h.isDone())
 					{
 						_activeHill.getStandingPlayers().clear();
 						_activeHill = h;
+						_activeHill.setActiveHill(true);
 						noMoreHills = false;
 						//Bukkit.broadcastMessage(C.Gold + "Hill has changed to " + _activeHill.getName()
 						//	+ "! Go There!!!!");
@@ -583,6 +586,7 @@ public class SearchAndDestroy extends TeamGame {
 						break;
 					}
 				}
+				
 				//end the game
 				if (noMoreHills)
 				{
@@ -619,6 +623,9 @@ public class SearchAndDestroy extends TeamGame {
 				}
 			}
 			
+			for(Hill h : _hills) {
+				h.drawHologram();
+			}
 			
 			for (Player p : Bukkit.getOnlinePlayers())
 			{
@@ -825,7 +832,7 @@ public class SearchAndDestroy extends TeamGame {
 				_hills.add(hill);
 				logger.info("Added Hill: " + hill.toString());
 				hill.startHologram();
-				hill.drawHologram();
+				//hill.drawHologram();
 				i++;
 			}
 			else if(key.equalsIgnoreCase("RandomHillOrder"))
@@ -860,6 +867,12 @@ public class SearchAndDestroy extends TeamGame {
 			}
 			
 			_activeHill = _hills.get(0);
+			_activeHill.setActiveHill(true);
+			
+			for(Hill h : _hills)
+			{
+				h.drawHologram();
+			}
 		}
 		else// if(_mapType != SNDMapType.KOTH)
 		{
