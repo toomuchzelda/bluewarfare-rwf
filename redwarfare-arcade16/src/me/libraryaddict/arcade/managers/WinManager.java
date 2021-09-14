@@ -14,6 +14,7 @@ import me.libraryaddict.core.time.TimeType;
 import me.libraryaddict.core.utils.UtilEnt;
 import me.libraryaddict.core.utils.UtilFirework;
 import me.libraryaddict.core.utils.UtilMath;
+import me.libraryaddict.core.utils.UtilPlayer;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Location;
@@ -198,8 +199,11 @@ public class WinManager extends MiniPlugin {
         WinEvent winEvent = new WinEvent(_lastWinners, losers);
 
         Bukkit.getPluginManager().callEvent(winEvent);
-
+    
         Bukkit.broadcastMessage(team.getColoring() + team.getName() + " wins!");
+        for(Player p : UtilPlayer.getPlayers()) {
+            p.sendTitle(team.getColoring() + team.getName() + " wins!", " ", 20, 30, 20);
+        }
 
         _arcadeManager.getGame().setState(GameState.End);
     }
