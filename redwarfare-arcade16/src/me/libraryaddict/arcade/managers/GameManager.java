@@ -645,13 +645,7 @@ public class GameManager extends MiniPlugin {
         for (GameTeam team : getGame().getTeams()) {
             for (Player player : team.getPlayers()) {
                 if (getGame().getOption(GameOption.TEAM_HOTBAR)) {
-                    ItemBuilder builder = new ItemBuilder(Material.LEATHER_CHESTPLATE);
-
-                    builder.setTitle(team.getColoring() + C.Bold + team.getName());
-                    builder.addLore(team.getColoring() + "You are on " + team.getName());
-                    builder.setColor(team.getColor());
-
-                    player.getInventory().setItem(8, builder.build());
+                    giveTeamLeatherItem(team, player);
                 }
 
                 try {
@@ -662,7 +656,19 @@ public class GameManager extends MiniPlugin {
             }
         }
     }
-
+    
+    public static void giveTeamLeatherItem(GameTeam team, Player player)
+    {
+        ItemBuilder builder = new ItemBuilder(Material.LEATHER_CHESTPLATE);
+    
+        builder.setTitle(team.getColoring() + C.Bold + team.getName());
+        builder.addLore(team.getColoring() + "You are on " + team.getName());
+        builder.setColor(team.getColor());
+    
+        player.getInventory().setItem(8, builder.build());
+    }
+    
+    
     @EventHandler
     public void onHatsStart(GameStateEvent event) {
         if (event.getState() != GameState.Live)

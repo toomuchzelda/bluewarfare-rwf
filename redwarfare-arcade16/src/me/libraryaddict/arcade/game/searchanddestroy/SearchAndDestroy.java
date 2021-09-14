@@ -16,11 +16,13 @@ import me.libraryaddict.arcade.game.searchanddestroy.kits.*;
 import me.libraryaddict.arcade.kits.Ability;
 import me.libraryaddict.arcade.kits.Kit;
 import me.libraryaddict.arcade.managers.ArcadeManager;
+import me.libraryaddict.arcade.managers.GameManager;
 import me.libraryaddict.arcade.managers.GameState;
 import me.libraryaddict.core.C;
 import me.libraryaddict.core.ServerType;
 import me.libraryaddict.core.damage.AttackType;
 import me.libraryaddict.core.data.TeamSettings;
+import me.libraryaddict.core.inventory.utils.ItemBuilder;
 import me.libraryaddict.core.map.WorldData;
 import me.libraryaddict.core.scoreboard.FakeScoreboard;
 import me.libraryaddict.core.scoreboard.FakeTeam;
@@ -682,6 +684,7 @@ public class SearchAndDestroy extends TeamGame {
 			{
 				long diedWhen = team.getDiedTime(p);
 				long now = System.currentTimeMillis();
+				//respawn after 5 seconds
 				if(now - diedWhen > 5000)
 				{
 					p.setFlying(false);
@@ -694,6 +697,10 @@ public class SearchAndDestroy extends TeamGame {
 					p.getInventory().remove(getManager().getGameManager().getNextGame());
 					
 					removeKillstreak(p);
+					
+					if (getOption(GameOption.TEAM_HOTBAR)) {
+						GameManager.giveTeamLeatherItem(team, p);
+					}
 					
 					try {
 						getKit(p).applyKit(p);
@@ -717,9 +724,6 @@ public class SearchAndDestroy extends TeamGame {
 				else
 				{
 					long seconds = 5 - ((now - diedWhen) / 1000);
-					//int ticksToDisplay = (int) (100 - (now - diedWhen) / 50);
-					//ticksToDisplay = Math.max(1, ticksToDisplay);
-					//p.sendTitle(" ", C.Green + "Respawning in " + seconds + " seconds", 0, ticksToDisplay, 0);
 					String color;
 					if(now % 1000 > 500)
 						color = C.Green;
