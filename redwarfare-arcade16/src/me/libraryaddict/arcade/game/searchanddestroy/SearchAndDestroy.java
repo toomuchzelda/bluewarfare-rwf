@@ -641,36 +641,37 @@ public class SearchAndDestroy extends TeamGame {
 			
 			//logger.info(_activeHill.getStandingPlayers().toString());
 			//ArrayList<GameTeam> teamsOnPoint = new ArrayList<>();
-			GameTeam teamOnPoint = null;
-			Color particleColor = Color.WHITE;
+			//GameTeam teamOnPoint = null;
+			ArrayList<GameTeam> teamsOnPoint = new ArrayList<>();
+			//Color particleColor = Color.WHITE;
 			if (_activeHill.getStandingPlayers().size() > 0)
 			{
 				for (Player p : _activeHill.getStandingPlayers())
 				{
 					GameTeam team = getTeam(p);
 					//get first player's team
-					if (teamOnPoint == null)
-						teamOnPoint = team;
-						//more than one team on point, reward no points and reveal ghosts
-					else if (team != teamOnPoint)
-					{
-						teamOnPoint = null;
-						_activeHill.revealGhosts();
-						break;
-					}
+					if (!teamsOnPoint.contains(team))
+						teamsOnPoint.add(team);
 				}
 				
-				if (teamOnPoint != null)
-				{
-					int score = _kothScore.get(teamOnPoint);
+				for(GameTeam team : teamsOnPoint) {
+					int score = _kothScore.get(team);
+					score ++;
+					_kothScore.put(team, score);
+					//particle colour
+				}
+				
+				if(teamsOnPoint.size() > 1) {
+					_activeHill.revealGhosts();
+				}
+					/*int score = _kothScore.get(teamOnPoint);
 					score++;
 					_kothScore.put(teamOnPoint, score);
-					particleColor = teamOnPoint.getColor();
-				}
+					particleColor = teamOnPoint.getColor();*/
 				//logger.info("gave team " + teamOnPoint.getName() + " one point.\nend of tick");
 			}
 			
-			_activeHill.drawParticles(particleColor);
+			_activeHill.drawParticles(teamsOnPoint);
 		}
 	}
 	
