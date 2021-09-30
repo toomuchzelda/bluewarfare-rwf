@@ -2,11 +2,14 @@ package me.libraryaddict.arcade.game.searchanddestroy;
 
 import java.util.ArrayList;
 
+import me.libraryaddict.arcade.game.GameTeam;
 import me.libraryaddict.arcade.game.searchanddestroy.abilities.GhostAbility;
 import me.libraryaddict.arcade.kits.Ability;
 import me.libraryaddict.arcade.managers.ArcadeManager;
 import me.libraryaddict.core.data.ParticleColor;
 import me.libraryaddict.core.utils.UtilParticle;
+import me.libraryaddict.core.utils.UtilTime;
+
 import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.util.BoundingBox;
@@ -75,12 +78,64 @@ public class Hill
 		_hologram.setText("Hill " + _hillName, secondLine);
 	}
 	
-	public void drawParticles(Color color)
+	public void drawParticles(ArrayList<GameTeam> teams)
 	{
 		double xLength = Math.abs(_xzCorner.getX() - _oppositeCorner.getX());
 		double zLength = Math.abs(_xzCorner.getZ() - _oppositeCorner.getZ());
-		double y = _xzCorner.getY();
-		Particle.DustOptions options = new Particle.DustOptions(color, 2);
+		
+		World world = _xzCorner.getWorld();
+		//get RGB as 0-255 and convert  to range 0-1
+		Color color;
+		if(teams.size() < 1) {
+			// dont divide by 0!
+			color = Color.WHITE;
+		}
+		else {
+			int colorIndex = UtilTime.currentTick % teams.size();
+			color = teams.get(colorIndex).getColor();
+		}
+		
+		double blue = (double) color.getBlue();
+		double red = (double) color.getRed();
+		double green = (double) color.getGreen();
+		blue /= 255;
+		red /= 255;
+		green /= 255;
+		if(red == 0)
+			red = 0.00001;
+		
+		//draw x lines
+		Vector location = _oppositeCorner.toVector();
+		location.setY(_xzCorner.getY());
+		for(int x = 0; x <= xLength; x += 1)
+		{
+			location.setX(_oppositeCorner.getX() + x);
+			//fuck Utilparticle
+			world.spawnParticle(Particle.SPELL_MOB, location.getX(), location.getY(),
+					location.getZ(), 0, red, green, blue, 1);
+			
+			world.spawnParticle(Particle.SPELL_MOB, location.getX(), location.getY(),
+					location.getZ() + zLength, 0, red, green, blue, 1);
+		}
+		
+		//draw z lines
+		location.setX(_oppositeCorner.getX());
+		for(int z = 0; z <= zLength; z += 1)
+		{
+			location.setZ(_oppositeCorner.getZ() + z);
+			//fuck Utilparticle
+			world.spawnParticle(Particle.SPELL_MOB, location.getX(), location.getY(),
+					location.getZ(), 0, red, green, blue, 1);
+			
+			world.spawnParticle(Particle.SPELL_MOB, location.getX() + xLength, location.getY(),
+					location.getZ(), 0, red, green, blue, 1);
+		}
+	}
+	
+	public void drawParticles(Color color) {
+		double xLength = Math.abs(_xzCorner.getX() - _oppositeCorner.getX());
+		double zLength = Math.abs(_xzCorner.getZ() - _oppositeCorner.getZ());
+		
 		World world = _xzCorner.getWorld();
 		//get RGB as 0-255 and convert  to range 0-1
 		double blue = (double) color.getBlue();
