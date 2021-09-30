@@ -4,6 +4,7 @@ import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.events.ListenerPriority;
 import com.comphenix.protocol.events.PacketAdapter;
+import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.reflect.StructureModifier;
 import me.libraryaddict.core.C;
@@ -405,6 +406,20 @@ public class DamageManager extends MiniPlugin {
 
     public CustomDamageEvent createEvent(Entity entity, AttackType attack, double damage, Entity cause, Entity realCause,
                                          boolean ignoreRate) {
+    	
+    	//critical hit applies before any other damage calculations
+    	boolean isCriticalHit = false;
+    	if(cause instanceof Player) {
+    		Player p = (Player) cause;
+    		 isCriticalHit = p.getFallDistance() > 0 && !p.isOnGround() && !p.isClimbing()
+    				&& !p.isInWater() && !p.hasPotionEffect(PotionEffectType.BLINDNESS) && !p.isInsideVehicle()
+    				&& entity instanceof LivingEntity;
+    		
+    		if(isCriticalHit)
+    			damage *= 1.5;
+    	}
+    	 
+    	
         CustomDamageEvent event = new CustomDamageEvent(entity, attack, damage);
 
         event.setDamager(cause);
@@ -438,6 +453,22 @@ public class DamageManager extends MiniPlugin {
                     }
                 });
             }
+        }
+        
+        if(isCriticalHit) {
+        	event.addRunnable(new DamageRunnable("Critical Hit")
+			{
+				@Override
+				public void run(CustomDamageEvent event2) {
+					//cant find the spigot api. just gonna send a goddamn packet
+					PacketContainer critEffect = new PacketContainer(PacketType.Play.Server.ANIMATION);
+					critEffect.getIntegers().write(0, entity.getEntityId());
+					critEffect.getIntegers().write(1, 4);
+					for(Player viewer : entity.getWorld().getPlayers()) {
+						UtilPlayer.sendPacket(viewer, critEffect);
+					}
+				}
+			});
         }
 
         return event;
@@ -633,14 +664,14 @@ public class DamageManager extends MiniPlugin {
                 ItemStack item = ((Player) damager).getInventory().getItemInMainHand();
 
                 damage = UtilInv.getDamage(item);
-
-                if (event.getEntity() instanceof LivingEntity
-                        && !canAttemptHit(damager, (LivingEntity) event.getEntity())) {
+                
+                if (event.getEntity() instanceof LivingEntity && !canAttemptHit(damager, (LivingEntity) event.getEntity())) {
                     return;
                 }
             }
         }
 
+        
         /* if (!attackType.isInstantDeath() && attackType.isMelee() && event.getEntity() instanceof LivingEntity)
         {
         LivingEntity living = (LivingEntity) event.getEntity();
