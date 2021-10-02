@@ -1,13 +1,13 @@
 package me.libraryaddict.arcade.game.searchanddestroy;
 
 import java.util.ArrayList;
+import java.util.Set;
 
 import me.libraryaddict.arcade.game.GameTeam;
 import me.libraryaddict.arcade.game.searchanddestroy.abilities.GhostAbility;
 import me.libraryaddict.arcade.kits.Ability;
 import me.libraryaddict.arcade.managers.ArcadeManager;
-import me.libraryaddict.core.data.ParticleColor;
-import me.libraryaddict.core.utils.UtilParticle;
+import me.libraryaddict.core.recharge.Recharge;
 import me.libraryaddict.core.utils.UtilTime;
 
 import org.bukkit.*;
@@ -16,6 +16,7 @@ import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
 import me.libraryaddict.core.C;
+import me.libraryaddict.core.fancymessage.FancyMessage;
 import me.libraryaddict.core.hologram.Hologram;
 
 public class Hill
@@ -33,6 +34,7 @@ public class Hill
 	private BoundingBox _boundingBox;
 	private int _hillTime;
 	private ArcadeManager _manager;
+	private static final String ghostRevealRecharge = "Ghost Hill Reveal";
 	
 	public Hill(int hillNumber, String hillName, Location xzBorder, Location oppositeCorner, int time,
 				ArcadeManager manager)
@@ -78,7 +80,7 @@ public class Hill
 		_hologram.setText("Hill " + _hillName, secondLine);
 	}
 	
-	public void drawParticles(ArrayList<GameTeam> teams)
+	public void drawParticles(GameTeam[] teams)
 	{
 		double xLength = Math.abs(_xzCorner.getX() - _oppositeCorner.getX());
 		double zLength = Math.abs(_xzCorner.getZ() - _oppositeCorner.getZ());
@@ -86,13 +88,13 @@ public class Hill
 		World world = _xzCorner.getWorld();
 		//get RGB as 0-255 and convert  to range 0-1
 		Color color;
-		if(teams.size() < 1) {
+		if(teams.length < 1) {
 			// dont divide by 0!
 			color = Color.WHITE;
 		}
 		else {
-			int colorIndex = UtilTime.currentTick % teams.size();
-			color = teams.get(colorIndex).getColor();
+			int colorIndex = UtilTime.currentTick % teams.length;
+			color = teams[colorIndex].getColor();
 		}
 		
 		double blue = (double) color.getBlue();
@@ -181,8 +183,15 @@ public class Hill
 		{
 			for(Ability ability : _manager.getGame().getKit(p).getAbilities())
 			{
-				if(ability instanceof GhostAbility)
+				if(ability instanceof GhostAbility) {
 					((GhostAbility) ability).playRevealParticles(p);
+					//tell the ghost they're revealed (not spam)
+					if(Recharge.canUse(p, ghostRevealRecharge)) {
+						p.sendMessage(C.Red + "When multiple teams are on a hill with you, you become slightly "
+								+ "visible");
+						Recharge.use(p, ghostRevealRecharge, 120000);
+					}
+				}
 			}
 		}
 	}
