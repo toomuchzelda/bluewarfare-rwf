@@ -44,6 +44,8 @@ public class DeathManager extends MiniPlugin {
             Bukkit.broadcastMessage(damageEvent.getAttackType().getDeathMessage(C.Yellow, deathEvent.getKilledPrefix() + killed,
                     deathEvent.getKillerPrefix() + killer, cause));
         }
+        
+        deathEvent.getPlayer().sendTitle(C.Red + "You Died!", " ", 1, 10, 10);
 
         GameTeam team = game.getTeam(player);
 
