@@ -38,7 +38,7 @@ public class CustomDamageEvent extends Event implements Cancellable {
 	private boolean _ignoreRate;
 	private Vector _knockback = new Vector();
 	private HashMap<String, Vector> _knockbackMods = new HashMap<String, Vector>();
-	private HashMap<String, Integer> _knockbackMult = new HashMap<String, Integer>();
+	private HashMap<String, Double> _knockbackMult = new HashMap<String, Double>();
 	private Entity _realDamager;
 	private ArrayList<DamageRunnable> _runnables = new ArrayList<DamageRunnable>();
 	private boolean _calculateKB;
@@ -139,7 +139,7 @@ public class CustomDamageEvent extends Event implements Cancellable {
 
 			double level = 0;
 
-			for (int value : _knockbackMult.values())
+			for (double value : _knockbackMult.values())
 			{
 				level += value;
 			}
@@ -206,7 +206,7 @@ public class CustomDamageEvent extends Event implements Cancellable {
                 
                 double level = 0;
 
-                for (int value : _knockbackMult.values())
+                for (double value : _knockbackMult.values())
                 {
                     level += value;
                 }
@@ -265,7 +265,7 @@ public class CustomDamageEvent extends Event implements Cancellable {
 
             double level = 0;
 
-            for (int value : _knockbackMult.values())
+            for (double value : _knockbackMult.values())
             {
                 level += value;
             }
@@ -292,7 +292,7 @@ public class CustomDamageEvent extends Event implements Cancellable {
 		_knockbackMods.put(name, vector);
 	}
 
-	public void addKnockMult(String type, int mod) {
+	public void addKnockMult(String type, double mod) {
 		_knockbackMult.put(type, mod);
 	}
 
@@ -419,7 +419,8 @@ public class CustomDamageEvent extends Event implements Cancellable {
 							}
 						});
 					} else if (enchant.equals(Enchantment.KNOCKBACK)) {
-						addKnockMult("Knockback", level);
+						//nerf kb enchants from vanilla op
+						addKnockMult("Knockback", level * 0.5);
 					}
 				}
 			}
