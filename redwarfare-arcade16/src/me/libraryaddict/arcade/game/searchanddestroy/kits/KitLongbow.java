@@ -14,7 +14,7 @@ public class KitLongbow extends SnDKit {
                 });
 
         setItems(new ItemStack(Material.STONE_SWORD), new ItemBuilder(Material.BOW).addEnchantment(Enchantment.ARROW_INFINITE, 1)
-                .addEnchantment(Enchantment.ARROW_KNOCKBACK, 3).build(), new ItemStack(Material.ARROW));
+                .addEnchantment(Enchantment.ARROW_KNOCKBACK, 2).build(), new ItemStack(Material.ARROW));
     }
 
     @Override
