@@ -54,6 +54,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -642,7 +643,9 @@ public class SearchAndDestroy extends TeamGame {
 			//logger.info(_activeHill.getStandingPlayers().toString());
 			//ArrayList<GameTeam> teamsOnPoint = new ArrayList<>();
 			//GameTeam teamOnPoint = null;
-			ArrayList<GameTeam> teamsOnPoint = new ArrayList<>();
+			//ArrayList<GameTeam> teamsOnPoint = new ArrayList<>();
+			HashMap<GameTeam, Integer> teamsAndCount = new HashMap<>();
+			Set<GameTeam> keySet = teamsAndCount.keySet();
 			//Color particleColor = Color.WHITE;
 			if (_activeHill.getStandingPlayers().size() > 0)
 			{
@@ -650,18 +653,23 @@ public class SearchAndDestroy extends TeamGame {
 				{
 					GameTeam team = getTeam(p);
 					//get first player's team
-					if (!teamsOnPoint.contains(team))
-						teamsOnPoint.add(team);
+					Integer prevScore = teamsAndCount.get(team);
+					if(prevScore == null)
+						prevScore = 0;
+					teamsAndCount.put(team, prevScore + 1);
 				}
 				
-				for(GameTeam team : teamsOnPoint) {
+				
+				for(GameTeam team : keySet) {
 					int score = _kothScore.get(team);
-					score ++;
+					Integer toAdd = teamsAndCount.get(team) - 1;
+					//10 points for first player, and 5 points for every > 1
+					score += (teamsAndCount.get(team) * 5) + 10;
 					_kothScore.put(team, score);
 					//particle colour
 				}
 				
-				if(teamsOnPoint.size() > 1) {
+				if(keySet.size() > 1) {
 					_activeHill.revealGhosts();
 				}
 					/*int score = _kothScore.get(teamOnPoint);
@@ -670,8 +678,8 @@ public class SearchAndDestroy extends TeamGame {
 					particleColor = teamOnPoint.getColor();*/
 				//logger.info("gave team " + teamOnPoint.getName() + " one point.\nend of tick");
 			}
-			
-			_activeHill.drawParticles(teamsOnPoint);
+			//awesome inefficiency
+			_activeHill.drawParticles((GameTeam[]) keySet.toArray(new GameTeam[0]));
 		}
 	}
 	
