@@ -651,6 +651,11 @@ public class SearchAndDestroy extends TeamGame {
 			{
 				for (Player p : _activeHill.getStandingPlayers())
 				{
+					if(isInvisKit(p)) {
+						Hill.warnGhost(p);
+						continue;
+					}
+					
 					GameTeam team = getTeam(p);
 					//get first player's team
 					Integer prevScore = teamsAndCount.get(team);
@@ -669,9 +674,9 @@ public class SearchAndDestroy extends TeamGame {
 					//particle colour
 				}
 				
-				if(keySet.size() > 1) {
+				/*if(keySet.size() > 1) {
 					_activeHill.revealGhosts();
-				}
+				}*/
 					/*int score = _kothScore.get(teamOnPoint);
 					score++;
 					_kothScore.put(teamOnPoint, score);
@@ -756,6 +761,11 @@ public class SearchAndDestroy extends TeamGame {
 	public Hill getActiveHill()
 	{
 		return _activeHill;
+	}
+	
+	public boolean isInvisKit(Player player) {
+		Kit kit = this.getKit(player);
+		return kit instanceof KitGhost || kit instanceof KitWraith;
 	}
 	
 	
@@ -860,6 +870,7 @@ public class SearchAndDestroy extends TeamGame {
 				_kothScore.put(team, 0);
 			}
 			setOption(GameOption.DEATH_OUT, false);
+			setOption(GameOption.HAY_BALE_BREAKS_FALL, true);
 			
 			if(randomHillOrder)
 			{

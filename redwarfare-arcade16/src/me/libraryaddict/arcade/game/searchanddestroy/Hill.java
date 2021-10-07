@@ -34,7 +34,7 @@ public class Hill
 	private BoundingBox _boundingBox;
 	private int _hillTime;
 	private ArcadeManager _manager;
-	private static final String ghostRevealRecharge = "Ghost Hill Reveal";
+	private static final String ghostWarnRecharge = "Ghost Hill Warn";
 	
 	public Hill(int hillNumber, String hillName, Location xzBorder, Location oppositeCorner, int time,
 				ArcadeManager manager)
@@ -82,10 +82,10 @@ public class Hill
 	
 	public void drawParticles(GameTeam[] teams)
 	{
-		double xLength = Math.abs(_xzCorner.getX() - _oppositeCorner.getX());
-		double zLength = Math.abs(_xzCorner.getZ() - _oppositeCorner.getZ());
+		//double xLength = Math.abs(_xzCorner.getX() - _oppositeCorner.getX());
+		//double zLength = Math.abs(_xzCorner.getZ() - _oppositeCorner.getZ());
 		
-		World world = _xzCorner.getWorld();
+		//World world = _xzCorner.getWorld();
 		//get RGB as 0-255 and convert  to range 0-1
 		Color color;
 		if(teams.length < 1) {
@@ -97,6 +97,9 @@ public class Hill
 			color = teams[colorIndex].getColor();
 		}
 		
+		drawParticles(color);
+		
+		/*
 		double blue = (double) color.getBlue();
 		double red = (double) color.getRed();
 		double green = (double) color.getGreen();
@@ -132,6 +135,7 @@ public class Hill
 			world.spawnParticle(Particle.SPELL_MOB, location.getX() + xLength, location.getY(),
 					location.getZ(), 0, red, green, blue, 1);
 		}
+		*/
 	}
 	
 	public void drawParticles(Color color) {
@@ -186,13 +190,20 @@ public class Hill
 				if(ability instanceof GhostAbility) {
 					((GhostAbility) ability).playRevealParticles(p);
 					//tell the ghost they're revealed (not spam)
-					if(Recharge.canUse(p, ghostRevealRecharge)) {
+					if(Recharge.canUse(p, ghostWarnRecharge)) {
 						p.sendMessage(C.Red + "When multiple teams are on a hill with you, you become slightly "
 								+ "visible");
-						Recharge.use(p, ghostRevealRecharge, 120000);
+						Recharge.use(p, ghostWarnRecharge, 120000);
 					}
 				}
 			}
+		}
+	}
+	
+	public static void warnGhost(Player player) {
+		if(Recharge.canUse(player, ghostWarnRecharge)) {
+			player.sendMessage(C.Red + "Invisible kits can't earn points on the Hill");
+			Recharge.use(player, ghostWarnRecharge, 120000);
 		}
 	}
 	
