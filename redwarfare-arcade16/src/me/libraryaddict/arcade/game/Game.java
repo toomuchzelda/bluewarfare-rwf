@@ -47,6 +47,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
@@ -76,7 +77,7 @@ public abstract class Game implements Listener {
 	/**
 	 * Keeps track of everyone's kit for that game, does not include players who left before the game started
 	 */
-	private HashMap<UUID, Kit> _chosenKit = new HashMap<UUID, Kit>();
+	protected HashMap<UUID, Kit> _chosenKit = new HashMap<UUID, Kit>();
 	private Pref<Boolean> _combatLog = new Pref<Boolean>("Combat.Log", false);
 	private ArrayList<SimpleCommand> _commands = new ArrayList<SimpleCommand>();
 	private Pref<Boolean> _damageIndicators = new Pref<Boolean>("Damage.Indicators", false);
@@ -990,6 +991,17 @@ public abstract class Game implements Listener {
 		hologram.start();
 
 		_holograms.add(new DamageIndicator(hologram));
+	}
+	
+	@EventHandler
+	public void onFallDamage(CustomDamageEvent event) {
+		if(event.getAttackType().isFall() && getOption(GameOption.HAY_BALE_BREAKS_FALL))
+		{
+			if(event.getDamagee().getLocation().getBlock().getRelative(BlockFace.DOWN).getBlockData()
+					.getMaterial() == Material.HAY_BLOCK) {
+				event.setCancelled(true);
+			}
+		}
 	}
 
 	@EventHandler

@@ -30,6 +30,7 @@ public class GameOption<Y> {
     public static GameOption<Pair<Sound, Float>> GAME_START_SOUND = new GameOption<>(
             Pair.of(Sound.BLOCK_NOTE_BLOCK_HARP, 0F));
     public static GameOption<Boolean> HATS = new GameOption<>(false);
+    public static GameOption<Boolean> HAY_BALE_BREAKS_FALL = new GameOption<>(false);
     public static GameOption<Boolean> HUNGER = new GameOption<>(false);
     public static GameOption<Boolean> INFORM_KILL_ASSIST = new GameOption<>(false);
     public static GameOption<Boolean> INTERACT_DECORATIONS = new GameOption<>(false);
